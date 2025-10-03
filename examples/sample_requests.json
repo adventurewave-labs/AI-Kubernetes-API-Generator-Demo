@@ -1,0 +1,21 @@
+{
+  "group": "platform.test.io",
+  "version": "v1alpha1",
+  "kind": "VectorDB",
+  "spec_properties": {
+    "engine_type": {
+      "type": "string",
+      "description": "Vector database engine type"
+    },
+    "replicas": {
+      "type": "integer",
+      "description": "Number of replicas"
+    },
+    "storage_size": {
+      "type": "string",
+      "description": "Storage size"
+    }
+  },
+  "output_dir": "/tmp/vectordb",
+  "description": "Vector database API for AI workloads"
+}
