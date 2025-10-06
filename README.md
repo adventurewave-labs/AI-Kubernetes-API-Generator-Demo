@@ -1,32 +1,40 @@
 # AI-Assisted Platform Extension Generator
 
-🚀 **Accelerate Kubernetes platform development through natural language code generation**
+🚀 **Transform natural language into production Kubernetes APIs in seconds**
 
 ## 🎯 Overview
 
-The AI-Assisted Platform Extension Generator translates natural language descriptions into Kubernetes API specifications and code. This tool enables platform engineers to rapidly create custom resources by describing them in plain English.
+The AI-Assisted Platform Extension Generator uses advanced AI to transform natural language descriptions into complete Kubernetes API specifications, Custom Resource Definitions (CRDs), and controller code. Simply describe what you want to build, and watch as AI generates production-ready Kubernetes resources with stunning visual feedback.
 
 ## ✨ Key Features
 
-- **🧠 Natural Language Processing**: Describe Kubernetes APIs in plain English
+- **🤖 AI-Powered Generation**: Advanced OpenRouter AI models understand complex requirements
+- **🎨 Stunning Visual Interface**: Beautiful, interactive demo with real-time processing
 - **📋 OpenAPI Generation**: Automatically generates OpenAPI 3.0 specifications
-- **🔧 Code Generation**: Creates ready-to-use Kubernetes controller code
-- **✅ Comprehensive Testing**: Full test suite with 14+ test cases
-- **🎯 Type Safety**: Pydantic models for robust data validation
-- **📚 Production Ready**: Follows Kubernetes best practices
+- **🏗️ Kubernetes YAML**: Production-ready CRDs and sample instances
+- **🔧 Controller Code**: Creates ready-to-use Kubernetes operator code
+- **⚡ Interactive Examples**: Choose from pre-built scenarios or create custom requests
+- **📁 Clear Output Guidance**: Shows exactly where files are saved and how to use them
+- **✅ Real-World Applications**: Platform engineering, service mesh, DevOps automation
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Natural Language│ -> │  AI Scaffolding │ -> │  OpenAPI Spec   │
-│    Description  │    │      Agent      │    │   Generation    │
+│  Natural Language│ -> │   OpenRouter    │ -> │   Structured    │
+│    Description  │    │      AI Model    │    │    Request      │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                                        │
                                                        ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Generated Code │ <- │  openapi-mcp-   │ <- │  API Paths &    │
-│   & Resources   │    │   codegen Tool   │    │   Schemas       │
+│ Kubernetes YAML  │ <- │  OpenAPI Spec   │ <- │  API Schema     │
+│ & CRDs Generated │    │   Generation    │    │   Builder       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                       │
+                                                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Production K8s  │ <- │ Controller Code │ <- │ MCP Server      │
+│    Deployment   │    │   Generation    │    │   Generation    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -35,108 +43,132 @@ The AI-Assisted Platform Extension Generator translates natural language descrip
 ### Prerequisites
 
 - Python 3.8+
-- OpenAI API key
+- OpenRouter API key (free tier available)
 - Git (for repository operations)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/ai-assisted-platform-extension-generator.git
-cd ai-assisted-platform-extension-generator
+git clone https://github.com/marcuspat/AI-Assisted-Platform-Extension-Generator.git
+cd AI-Assisted-Platform-Extension-Generator
 
 # Install dependencies
-pip install openai pydantic pytest
+pip install -r requirements.txt
 
-# Install openapi-mcp-codegen (optional, for code generation)
-cd openapi-mcp-codegen
-pip install -e .
+# Or install manually
+pip install openai pydantic httpx fastapi uvicorn rich
 ```
 
-### Basic Usage
+### 🎯 **Experience the AI Demo (Recommended)**
 
-#### 1. Test the Core Functionality
+The easiest way to see the power of this tool is to run the impressive AI demo:
 
 ```bash
-# Run the built-in test suite
-python3 src/simple_agent.py
+# Get your free OpenRouter API key from https://openrouter.ai
+export OPENROUTER_API_KEY="your-openrouter-api-key-here"
+export OPENROUTER_MODEL="deepseek/deepseek-chat-v3.1:free"
+
+# Run the stunning AI demo
+python examples/ai_demo.py
 ```
 
-#### 2. Run Comprehensive Tests
+**🎨 What you'll see:**
+- Beautiful visual interface with real-time AI processing
+- Interactive examples (Redis clusters, Database services, Monitoring APIs)
+- Production-ready Kubernetes YAML generation
+- Clear file locations and usage instructions
+- Real-world applications and development workflow
+
+### 🛠️ **Alternative: Simple Setup Script**
+
+```bash
+# Use the comprehensive setup script
+./run.sh demo
+```
+
+### 🧪 **Run Tests**
 
 ```bash
 # Execute the full test suite
+python3 -m pytest tests/ -v
+
+# Run specific test file
 python3 -m pytest tests/test_agent.py -v
-```
-
-#### 3. Example API Generation
-
-```python
-from src.simple_agent import APIRequest, generate_openapi_spec
-
-# Create a resource request
-request = APIRequest(
-    kind="VectorDB",
-    group="ai.platform.cnoe.io",
-    version="v1alpha1",
-    spec_properties={
-        "engine_type": "string",
-        "replicas": "integer",
-        "enabled": "boolean"
-    },
-    description="Vector database cluster resource"
-)
-
-# Generate OpenAPI specification
-spec = generate_openapi_spec(request)
-print(f"Generated API: {spec.info['title']}")
-print(f"Available at: {list(spec.paths.keys())[0]}")
 ```
 
 ## 📝 Usage Examples
 
-### Example 1: Database Resource
+### 🎯 **Natural Language Examples**
 
-```python
-request = APIRequest(
-    kind="PostgresCluster",
-    group="database.platform.cnoe.io",
-    spec_properties={
-        "version": "string",
-        "replicas": "integer",
-        "storage_size": "string",
-        "backup_enabled": "boolean"
-    }
-)
+Simply describe what you want to create in plain English:
+
+**"I need a Kubernetes API for managing PostgreSQL database clusters with version control, replication settings, storage size, backup scheduling, and connection limits."**
+
+**"Create a Redis cluster management API with memory configuration, CPU allocation, persistence settings, and cluster scaling options."**
+
+**"Build a monitoring service API for collecting metrics with configurable intervals, retention policies, alert thresholds, and notification channels."**
+
+**"Design a machine learning pipeline API for model training with dataset sources, training parameters, GPU requirements, and deployment configurations."**
+
+### 🏗️ **Generated Kubernetes Resources**
+
+The AI automatically generates:
+
+```yaml
+# Custom Resource Definition
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: postgresclusters.database.cnoe.io
+spec:
+  group: database.cnoe.io
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              version:
+                type: string
+                description: "PostgreSQL version"
+              replicas:
+                type: integer
+                description: "Number of replicas"
+              storage_size:
+                type: string
+                description: "Storage size specification"
+              backup_enabled:
+                type: boolean
+                description: "Enable automatic backups"
+
+# Sample Instance
+---
+apiVersion: database.cnoe.io/v1alpha1
+kind: PostgresCluster
+metadata:
+  name: my-database
+  namespace: default
+spec:
+  version: "14"
+  replicas: 3
+  storage_size: "100Gi"
+  backup_enabled: true
 ```
 
-### Example 2: Cache Resource
+### 📁 **Generated Files**
 
-```python
-request = APIRequest(
-    kind="RedisCluster",
-    group="cache.platform.cnoe.io",
-    spec_properties={
-        "mode": "string",
-        "nodes": "integer",
-        "persistence": "boolean"
-    }
-)
-```
+When you run the demo, the AI creates:
 
-### Example 3: ML Pipeline
-
-```python
-request = APIRequest(
-    kind="MLPipeline",
-    group="ml.platform.cnoe.io",
-    spec_properties={
-        "model_name": "string",
-        "training_steps": "integer",
-        "gpu_enabled": "boolean"
-    }
-)
-```
+- **`generated_specs/postgrescluster_demo.json`** - OpenAPI 3.0 specification
+- **Kubernetes YAML** - Ready-to-deploy CRDs and sample instances
+- **Usage instructions** - Clear guidance on next steps
+- **Development workflow** - Complete path from spec to production
 
 ## 🧪 Testing
 
@@ -216,12 +248,31 @@ components:
 ### Environment Variables
 
 ```bash
-# Required for AI integration (future enhancement)
+# Required for AI integration
+export OPENROUTER_API_KEY="your-openrouter-api-key"
+export OPENROUTER_MODEL="deepseek/deepseek-chat-v3.1:free"
+
+# Alternative: OpenAI API key (supported but not recommended)
 export OPENAI_API_KEY="your-openai-api-key"
 
 # Optional: Custom codegen tool path
 export OPENAPI_MCP_CODEGEN_PATH="/path/to/openapi-mcp-codegen"
 ```
+
+### 🎯 **Get Your Free API Key**
+
+1. Visit [OpenRouter.ai](https://openrouter.ai)
+2. Sign up for a free account
+3. Get your API key from the dashboard
+4. Use free models like `deepseek/deepseek-chat-v3.1:free`
+
+### Supported AI Models
+
+| Model | Type | Cost | Recommended |
+|-------|------|------|-------------|
+| `deepseek/deepseek-chat-v3.1:free` | Free | $0 | ✅ Best for demos |
+| `meta-llama/llama-3.2-3b-instruct:free` | Free | $0 | ✅ Good alternative |
+| `anthropic/claude-3.5-sonnet` | Paid | $3/1M tokens | ⭐ Best quality |
 
 ### Supported Field Types
 
@@ -252,11 +303,34 @@ export OPENAPI_MCP_CODEGEN_PATH="/path/to/openapi-mcp-codegen"
 
 ## 🔄 Development Workflow
 
-1. **Create Request**: Define your Kubernetes resource in natural language
-2. **Generate Spec**: Automatically create OpenAPI specification
-3. **Validate**: Run tests to ensure correctness
-4. **Generate Code**: Use openapi-mcp-codegen for controller generation
-5. **Deploy**: Deploy your custom resource to Kubernetes
+### 🚀 **AI-Powered Workflow (Recommended)**
+
+1. **🎯 Describe Your API**: Simply explain what you want in natural language
+2. **🤖 AI Processing**: Watch as AI understands and structures your requirements
+3. **📋 Generate OpenAPI**: Get production-ready OpenAPI 3.0 specifications
+4. **🏗️ Create Kubernetes YAML**: Receive ready-to-deploy CRDs and sample instances
+5. **🚀 Deploy to K8s**: Use `kubectl apply -f` to deploy your new API
+6. **🎯 Use Your API**: Interact with your new Kubernetes custom resource
+
+### 🛠️ **Advanced Development**
+
+```bash
+# 1. AI generates OpenAPI spec
+# File: generated_specs/myapi_demo.json
+
+# 2. Generate MCP server (optional)
+openapi-mcp-codegen --spec-file generated_specs/myapi_demo.json --output-dir ./mcp-server
+
+# 3. Generate Kubernetes controller (optional)
+openapi-mcp-codegen --spec-file generated_specs/myapi_demo.json --generate-controller --output-dir ./k8s-controller
+
+# 4. Deploy your API
+kubectl apply -f generated_yaml.yaml
+
+# 5. Use your new Kubernetes API
+kubectl get myapis
+kubectl describe myapi my-instance
+```
 
 ## 🤝 Contributing
 
