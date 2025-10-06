@@ -74,19 +74,27 @@ validate_python_version() {
 validate_api_key() {
     echo -e "${BLUE}🔑 Validating API keys...${NC}"
 
-    if [[ -z "$OPENAI_API_KEY" ]]; then
-        echo -e "${YELLOW}⚠️  WARNING: OPENAI_API_KEY not set${NC}"
-        echo -e "${YELLOW}   The AI agent requires an OpenAI API key to function${NC}"
-        echo -e "${YELLOW}   Please set it with: export OPENAI_API_KEY='your-key-here'${NC}"
+    # Check for any supported API key
+    if [[ -n "$OPENAI_API_KEY" ]]; then
+        echo -e "${GREEN}✅ OpenAI API key is set${NC}"
+        return 0
+    elif [[ -n "$OPENROUTER_API_KEY" ]]; then
+        echo -e "${GREEN}✅ OpenRouter API key is set${NC}"
+        echo -e "${GREEN}   Using model: ${OPENROUTER_MODEL:-anthropic/claude-3.5-sonnet}${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}⚠️  WARNING: No API key found${NC}"
+        echo -e "${YELLOW}   The AI agent requires an API key to function${NC}"
+        echo -e "${YELLOW}   Please set one of the following:${NC}"
+        echo -e "${YELLOW}     - OpenAI:     export OPENAI_API_KEY='your-key-here'${NC}"
+        echo -e "${YELLOW}     - OpenRouter: export OPENROUTER_API_KEY='your-key-here'${NC}"
 
         read -p "Do you want to continue without API key? (y/N): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo -e "${RED}❌ Exiting. Please set OPENAI_API_KEY and try again${NC}"
+            echo -e "${RED}❌ Exiting. Please set an API key and try again${NC}"
             exit 1
         fi
-    else
-        echo -e "${GREEN}✅ OpenAI API key is set${NC}"
     fi
 }
 
@@ -215,12 +223,12 @@ EOF
 # =============================================================================
 
 run_demo() {
-    echo -e "${PURPLE}🚀 Running Demo Application...${NC}"
+    echo -e "${PURPLE}🚀 Running AI-Powered Demo Application...${NC}"
 
     cd "$PROJECT_DIR"
-    python3 examples/demo.py
+    python3 examples/ai_demo.py
 
-    echo -e "${GREEN}✅ Demo completed successfully${NC}"
+    echo -e "${GREEN}✅ AI Demo completed successfully${NC}"
 }
 
 run_interactive_mode() {

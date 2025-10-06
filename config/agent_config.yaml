@@ -1,0 +1,32 @@
+# AI-Assisted Platform Extension Generator Configuration
+agent:
+  name: "AI Scaffolding Agent"
+  version: "1.0.0"
+  description: "Generates OpenAPI specifications from natural language"
+
+openai:
+  model: "gpt-4"
+  max_tokens: 4000
+  temperature: 0.1
+  timeout: 60
+
+output:
+  format: "yaml"
+  indent: 2
+  validate_schemas: true
+
+kubernetes:
+  api_version: "v1"
+  kind_base: "CustomResourceDefinition"
+  group_pattern: "*.platform.cnoe.io"
+  version_pattern: "v1alpha1"
+
+logging:
+  level: "INFO"
+  format: "json"
+  file: "logs/agent.log"
+
+validation:
+  strict_mode: true
+  require_descriptions: true
+  enforce_naming: true
