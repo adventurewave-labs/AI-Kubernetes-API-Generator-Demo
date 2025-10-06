@@ -233,29 +233,38 @@ def interactive_ai_demo():
             print(f"❌ Error: {e}")
 
 def main():
-    """Run the AI-powered demo"""
+    """Run the AI-powered demo - automatically redirects to impressive demo"""
     print("🚀 Starting AI-Powered Demo...")
     print()
 
-    success = demo_openrouter_ai()
+    # Check for API key
+    api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("❌ No API key configured. Please set OPENROUTER_API_KEY environment variable.")
+        print("💡 Get your free API key from: https://openrouter.ai")
+        return
 
-    if success:
-        print("\n✅ AI Demo completed successfully!")
-        print("\n💡 What you just saw:")
-        print("   • AI understood natural language")
-        print("   • Generated production-ready OpenAPI specs")
-        print("   • Created Kubernetes-compatible API definitions")
-        print("   • Ready for deployment with openapi-mcp-codegen")
+    print("💡 Launching impressive AI demo with visual interface...")
+    print()
 
-        # Ask if user wants interactive mode
-        try:
-            response = input("\n🎯 Try interactive mode? (y/N): ").strip().lower()
-            if response in ['y', 'yes']:
-                interactive_ai_demo()
-        except KeyboardInterrupt:
-            print("\n👋 Goodbye!")
-    else:
-        print("\n❌ AI demo failed. Please check your API key configuration.")
+    try:
+        from impressive_ai_demo import interactive_demo
+        interactive_demo()
+    except ImportError:
+        print("⚠️  Impressive demo not available. Running basic demo...")
+        success = demo_openrouter_ai()
+        if success:
+            print("\n✅ Basic demo completed successfully!")
+        else:
+            print("\n❌ Demo failed. Please check your API key configuration.")
+    except KeyboardInterrupt:
+        print("\n👋 Goodbye!")
+    except Exception as e:
+        print(f"⚠️  Demo error: {e}")
+        print("💡 Running basic demo instead...")
+        success = demo_openrouter_ai()
+        if success:
+            print("\n✅ Basic demo completed successfully!")
 
 if __name__ == "__main__":
     main()
