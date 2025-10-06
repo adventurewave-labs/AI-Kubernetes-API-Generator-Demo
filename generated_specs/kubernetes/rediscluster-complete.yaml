@@ -1,0 +1,53 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: redisclusters.cnoe.io
+  annotations:
+    cert-manager.io/inject-ca-from: 'cnoe-io/rediscluster-serving-cert'
+spec:
+  group: cnoe.io
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+            description: f"platform.cnoe.io/v1alpha1"
+          kind:
+            type: string
+            description: "RedisCluster"
+          metadata:
+            type: object
+          spec:
+            type: object
+            properties:
+              memory:
+                type: string
+                description: "memory" 
+              cpu:
+                type: string
+                description: "cpu" 
+              persistence:
+                type: boolean
+                description: "persistence" 
+    status:
+      type: object
+  names:
+    kind: RedisCluster
+    plural: redisclusters
+    singular: rediscluster
+  scope: Namespaced
+---
+apiVersion: cnoe.io/v1alpha1
+kind: RedisCluster
+metadata:
+  name: my-rediscluster-instance
+  namespace: default
+spec:
+  memory: example-value
+  cpu: example-value
+  persistence: True

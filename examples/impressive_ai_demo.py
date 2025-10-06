@@ -64,7 +64,7 @@ def display_processing_animation():
         progress.update(task, description="[cyan]📝 Building Controller templates...")
         time.sleep(1)
 
-def display_kubernetes_output(api_result: Dict[str, Any], request: CodegenRequest):
+def display_kubernetes_output(api_result: Dict[str, Any], request: CodegenRequest, yaml_content: str = None):
     """Display impressive Kubernetes outputs"""
 
     # Create impressive output layout
@@ -102,7 +102,10 @@ def display_kubernetes_output(api_result: Dict[str, Any], request: CodegenReques
     layout["info"].update(Panel(info_table, border_style="blue"))
 
     # Code panel with Kubernetes YAML
-    k8s_yaml = generate_impressive_k8s_yaml(request)
+    if yaml_content:
+        k8s_yaml = yaml_content
+    else:
+        _, _, k8s_yaml = generate_impressive_k8s_yaml(request)
     syntax = Syntax(k8s_yaml, "yaml", theme="monokai", line_numbers=True)
     layout["code"].update(Panel(syntax, title=f"📄 Generated Kubernetes YAML", border_style="green"))
 
@@ -110,8 +113,10 @@ def display_kubernetes_output(api_result: Dict[str, Any], request: CodegenReques
 
     console.print(layout)
 
-def generate_impressive_k8s_yaml(request: CodegenRequest) -> str:
-    """Generate impressive Kubernetes YAML with multiple resources"""
+def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str]:
+    """Generate impressive Kubernetes YAML with multiple resources
+    Returns: (crd_yaml, instance_yaml, combined_yaml)
+    """
 
     # Generate CRD
     crd_yaml = f"""apiVersion: apiextensions.k8s.io/v1
@@ -173,9 +178,7 @@ spec:
         else:
             sample_spec[field_name] = "example-value"
 
-    instance_yaml = f"""
----
-apiVersion: {request.group.split('.')[-2]}.{request.group.split('.')[-1]}/{request.version}
+    instance_yaml = f"""apiVersion: {request.group.split('.')[-2]}.{request.group.split('.')[-1]}/{request.version}
 kind: {request.kind}
 metadata:
   name: my-{request.kind.lower()}-instance
@@ -185,7 +188,9 @@ spec:
     for field_name, value in sample_spec.items():
         instance_yaml += f"  {field_name}: {value}\n"
 
-    return crd_yaml + instance_yaml
+    combined_yaml = crd_yaml + "\n---\n" + instance_yaml
+
+    return crd_yaml, instance_yaml, combined_yaml
 
 def interactive_demo():
     """Run impressive interactive demo"""
@@ -244,24 +249,55 @@ def interactive_demo():
             console.print("[cyan]🤖 AI is generating your Kubernetes API...[/cyan]")
             parsed_request = agent.parse_request(user_request)
 
-            # Display impressive results
-            display_kubernetes_output(None, parsed_request)
-
-            # Save results
+            # Generate and save all results
             output_dir = Path("generated_specs")
             output_dir.mkdir(exist_ok=True)
 
-            filename = f"{parsed_request.kind.lower()}_demo.json"
-            filepath = output_dir / filename
-
-            # Generate and save OpenAPI spec
+            # Generate OpenAPI spec
             codegen = CodeGenerator()
             openapi_spec = codegen.generate_openapi_spec(parsed_request)
 
-            with open(filepath, 'w') as f:
+            # Generate Kubernetes YAML files
+            crd_yaml, instance_yaml, combined_yaml = generate_impressive_k8s_yaml(parsed_request)
+
+            # Save OpenAPI specification
+            openapi_filename = f"{parsed_request.kind.lower()}_demo.json"
+            openapi_filepath = output_dir / openapi_filename
+
+            with open(openapi_filepath, 'w') as f:
                 json.dump(openapi_spec, f, indent=2)
 
-            console.print(f"\n[green]💾 OpenAPI specification saved to: {filepath}[/green]")
+            # Save Kubernetes YAML files
+            k8s_dir = output_dir / "kubernetes"
+            k8s_dir.mkdir(exist_ok=True)
+
+            crd_filename = f"{parsed_request.kind.lower()}-crd.yaml"
+            crd_filepath = k8s_dir / crd_filename
+
+            instance_filename = f"{parsed_request.kind.lower()}-instance.yaml"
+            instance_filepath = k8s_dir / instance_filename
+
+            combined_filename = f"{parsed_request.kind.lower()}-complete.yaml"
+            combined_filepath = k8s_dir / combined_filename
+
+            # Save YAML files
+            with open(crd_filepath, 'w') as f:
+                f.write(crd_yaml)
+
+            with open(instance_filepath, 'w') as f:
+                f.write(instance_yaml)
+
+            with open(combined_filepath, 'w') as f:
+                f.write(combined_yaml)
+
+            # Display impressive results
+            display_kubernetes_output(None, parsed_request, combined_yaml)
+
+            console.print(f"\n[green]💾 Files saved to generated_specs/:[/green]")
+            console.print(f"  📄 OpenAPI spec: {openapi_filepath}")
+            console.print(f"  🏗️  CRD YAML: {crd_filepath}")
+            console.print(f"  🎯 Instance YAML: {instance_filepath}")
+            console.print(f"  📦 Complete YAML: {combined_filepath}")
 
             # Show output locations and usage
             console.print("\n[bold cyan]📁 Generated Files & Usage:[/bold cyan]")
@@ -273,12 +309,22 @@ def interactive_demo():
 
             usage_table.add_row(
                 "📄 OpenAPI Spec",
-                str(filepath),
+                str(openapi_filepath),
                 "MCP server generation"
             )
             usage_table.add_row(
-                "🏗️  Kubernetes YAML",
-                "Generated above",
+                "🏗️  CRD YAML",
+                str(crd_filepath),
+                "kubectl apply -f"
+            )
+            usage_table.add_row(
+                "🎯 Instance YAML",
+                str(instance_filepath),
+                "kubectl apply -f"
+            )
+            usage_table.add_row(
+                "📦 Complete YAML",
+                str(combined_filepath),
                 "kubectl apply -f"
             )
             usage_table.add_row(
@@ -296,10 +342,11 @@ def interactive_demo():
             console.print("• [magenta]Multi-tenant Systems[/magenta] - Tenant-specific resource management")
 
             console.print("\n[bold green]🔧 Development Workflow:[/bold green]")
-            console.print(f"1. 📝 AI generated OpenAPI spec: {filepath}")
-            console.print("2. 🏗️  Generate MCP server: openapi-mcp-codegen --spec-file ...")
-            console.print("3. 🚀 Deploy to Kubernetes: kubectl apply -f generated-yaml")
-            console.print("4. 🎯 Use your new API: kubectl get yourcustomresources")
+            console.print(f"1. 📝 AI generated OpenAPI spec: {openapi_filepath}")
+            console.print(f"2. 🏗️  Deploy CRD: kubectl apply -f {crd_filepath}")
+            console.print(f"3. 🚀 Deploy instance: kubectl apply -f {instance_filepath}")
+            console.print(f"4. 🎯 Or deploy all at once: kubectl apply -f {combined_filepath}")
+            console.print("5. 📊 Monitor your new API: kubectl get redisclusters")
 
         except Exception as e:
             console.print(f"[red]❌ Error: {e}[/red]")

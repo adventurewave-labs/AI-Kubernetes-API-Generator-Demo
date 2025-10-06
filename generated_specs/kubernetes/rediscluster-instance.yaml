@@ -1,0 +1,9 @@
+apiVersion: cnoe.io/v1alpha1
+kind: RedisCluster
+metadata:
+  name: my-rediscluster-instance
+  namespace: default
+spec:
+  memory: example-value
+  cpu: example-value
+  persistence: True
