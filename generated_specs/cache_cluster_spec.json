@@ -1,0 +1,91 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CacheCluster",
+    "version": "v1beta1",
+    "description": "High-performance cache cluster"
+  },
+  "paths": {
+    "/apis/cache.platform.cnoe.io/v1beta1/cacheclusters": {
+      "post": {
+        "summary": "Create CacheCluster",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CacheCluster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CacheCluster created"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CacheCluster": {
+        "type": "object",
+        "properties": {
+          "apiVersion": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              }
+            }
+          },
+          "spec": {
+            "type": "object",
+            "properties": {
+              "node_count": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "memory_limit": {
+                "type": "string"
+              },
+              "persistence_enabled": {
+                "type": "boolean"
+              },
+              "engine": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "node_count",
+              "memory_limit",
+              "persistence_enabled",
+              "engine"
+            ]
+          },
+          "status": {
+            "type": "object",
+            "properties": {
+              "phase": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

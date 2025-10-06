@@ -107,10 +107,17 @@ class CodeGenerator:
         # Add spec properties
         schema = spec["components"]["schemas"][request.kind]["properties"]["spec"]
         for prop_name, prop_info in request.spec_properties.items():
-            schema["properties"][prop_name] = {
-                "type": prop_info.get("type", "string"),
-                "description": prop_info.get("description", f"Specification for {prop_name}")
-            }
+            if isinstance(prop_info, dict):
+                schema["properties"][prop_name] = {
+                    "type": prop_info.get("type", "string"),
+                    "description": prop_info.get("description", f"Specification for {prop_name}")
+                }
+            else:
+                # Handle legacy string format
+                schema["properties"][prop_name] = {
+                    "type": prop_info,
+                    "description": f"Specification for {prop_name}"
+                }
 
         return spec
 
@@ -362,8 +369,13 @@ func main() {{
         """Generate types.go content."""
         spec_fields = []
         for prop_name, prop_info in request.spec_properties.items():
-            go_type = self._map_type_to_go(prop_info.get("type", "string"))
-            spec_fields.append(f"	// {prop_name} is the {prop_info.get('description', prop_name)}")
+            if isinstance(prop_info, dict):
+                go_type = self._map_type_to_go(prop_info.get("type", "string"))
+                spec_fields.append(f"	// {prop_name} is the {prop_info.get('description', prop_name)}")
+            else:
+                # Handle legacy string format
+                go_type = self._map_type_to_go(prop_info)
+                spec_fields.append(f"	// {prop_name} is the {prop_name}")
             spec_fields.append(f"	{prop_name} {go_type} `json:\"{prop_name}\"`")
 
         spec_fields_str = "\n".join(spec_fields)

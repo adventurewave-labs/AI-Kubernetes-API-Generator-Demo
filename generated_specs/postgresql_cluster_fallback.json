@@ -1,0 +1,96 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PostgreSQLCluster",
+    "version": "v1alpha1",
+    "description": "Kubernetes API for managing PostgreSQL database clusters"
+  },
+  "paths": {
+    "/apis/database.platform.cnoe.io/v1alpha1/postgresqlclusters": {
+      "post": {
+        "summary": "Create PostgreSQLCluster",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostgreSQLCluster"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "PostgreSQLCluster created"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PostgreSQLCluster": {
+        "type": "object",
+        "properties": {
+          "apiVersion": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              }
+            }
+          },
+          "spec": {
+            "type": "object",
+            "properties": {
+              "database_version": {
+                "type": "string"
+              },
+              "replicas": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "storage_size": {
+                "type": "string"
+              },
+              "backup_enabled": {
+                "type": "boolean"
+              },
+              "connection_limit": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "required": [
+              "database_version",
+              "replicas",
+              "storage_size",
+              "backup_enabled",
+              "connection_limit"
+            ]
+          },
+          "status": {
+            "type": "object",
+            "properties": {
+              "phase": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

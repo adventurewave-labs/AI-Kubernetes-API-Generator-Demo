@@ -20,7 +20,7 @@ class CodegenRequest:
     group: str = "platform.cnoe.io"
     version: str = "v1alpha1"
     kind: str = ""
-    spec_properties: Dict[str, str] = Field(default_factory=dict)
+    spec_properties: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
     output_dir: str = "/tmp/generated"
     description: str = ""
 
@@ -140,7 +140,12 @@ Important rules:
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to parse AI response as JSON: {e}")
         except Exception as e:
-            raise ValueError(f"Error processing AI response: {e}")
+            error_str = str(e)
+            if "401" in error_str and "User not found" in error_str:
+                # Handle OpenRouter account issue - provide clear guidance
+                raise ValueError(f"OpenRouter account verification required. Your API key can list models but chat completions are restricted. Please verify your OpenRouter account at https://openrouter.ai/account or generate a new API key.")
+            else:
+                raise ValueError(f"Error processing AI response: {e}")
 
     def validate_request(self, request: CodegenRequest) -> List[str]:
         """
