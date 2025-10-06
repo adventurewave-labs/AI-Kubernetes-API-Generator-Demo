@@ -19,11 +19,11 @@ Generate production-ready Kubernetes APIs from plain English descriptions. Perfe
 ### Prerequisites
 
 - Python 3.8+
-- Docker and Kubernetes cluster (Kind recommended)
-- OpenRouter API key (free tier available)
+- Docker (running)
 - kubectl and kind CLI tools
+- OpenRouter API key (free tier available)
 
-### Installation
+### One-Command Demo Setup
 
 ```bash
 # Clone the repository
@@ -32,48 +32,49 @@ cd AI-Kubernetes-API-Generator
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
-### Kubernetes Cluster Setup
-
-```bash
-# Create Kind cluster (recommended for testing)
-kind create cluster --name ai-platform-demo
-
-# Verify cluster is running
-kubectl cluster-info --context kind-ai-platform-demo
-```
-
-### Run the Demo
-
-```bash
 # Get your free OpenRouter API key from https://openrouter.ai
 export OPENROUTER_API_KEY="your-openrouter-api-key-here"
 export OPENROUTER_MODEL="deepseek/deepseek-chat-v3.1:free"
 
-# Run the interactive demo
-python examples/ai_demo.py
-```
-
-### Alternative Setup
-
-```bash
-# Use the setup script (includes environment setup)
+# RUN THE COMPLETE DEMO - One command does everything!
 ./run.sh demo
 ```
 
-### Deploy Generated Kubernetes Resources
+**The demo command automatically:**
+1. ✅ Creates Kind cluster if needed
+2. 🤖 Generates Kubernetes APIs from natural language
+3. 🚀 Deploys CRDs and sample instances to the cluster
+4. 📊 Shows running resources and usage instructions
+
+### Manual Setup (Alternative)
 
 ```bash
-# After running the demo, deploy generated CRDs
+# Create Kind cluster manually
+kind create cluster --name ai-platform-demo
+
+# Run just the AI demo (no cluster setup)
+python examples/ai_demo.py
+
+# Deploy generated resources manually
 kubectl apply -f generated_specs/kubernetes/databaseservice-crd.yaml
-
-# Deploy sample instances
 kubectl apply -f generated_specs/kubernetes/databaseservice-instance.yaml
+```
 
-# Verify deployment
+### Verify Demo Results
+
+After the demo completes, explore your new Kubernetes APIs:
+
+```bash
+# Check deployed custom resources
+kubectl get crds | grep cnoe.io
+
+# View your new API instances
 kubectl get databaseservices.cnoe.io
 kubectl describe databaseservice my-databaseservice-instance
+
+# Explore the cluster
+kubectl get all -A
 ```
 
 ## Usage Examples

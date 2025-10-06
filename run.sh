@@ -227,12 +227,89 @@ EOF
 # =============================================================================
 
 run_demo() {
-    echo -e "${PURPLE}🚀 Running AI-Powered Demo Application...${NC}"
+    echo -e "${PURPLE}🚀 Running Complete AI Kubernetes API Demo...${NC}"
 
     cd "$PROJECT_DIR"
+
+    # Step 1: Setup Kind cluster
+    echo -e "${CYAN}🏗️  Setting up Kind cluster...${NC}"
+    if ! command -v kind &> /dev/null; then
+        echo -e "${RED}❌ kind not found. Please install kind first${NC}"
+        echo -e "${YELLOW}Install with: curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 && chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind${NC}"
+        return 1
+    fi
+
+    # Create Kind cluster if it doesn't exist
+    if ! kind get clusters | grep -q "ai-platform-demo"; then
+        echo -e "${YELLOW}📦 Creating Kind cluster 'ai-platform-demo'...${NC}"
+        kind create cluster --name ai-platform-demo --wait 30s
+    else
+        echo -e "${GREEN}✅ Kind cluster 'ai-platform-demo' already exists${NC}"
+    fi
+
+    # Verify cluster is ready
+    echo -e "${CYAN}🔍 Verifying cluster status...${NC}"
+    kubectl cluster-info --context kind-ai-platform-demo
+    kubectl get nodes
+
+    # Step 2: Run AI demo to generate specs
+    echo -e "${CYAN}🤖 Running AI demo to generate Kubernetes APIs...${NC}"
     python3 examples/ai_demo.py
 
-    echo -e "${GREEN}✅ AI Demo completed successfully${NC}"
+    # Step 3: Deploy generated Kubernetes resources
+    echo -e "${CYAN}🚀 Deploying generated Kubernetes resources...${NC}"
+
+    # Deploy generated CRDs if they exist
+    for crd_file in generated_specs/kubernetes/*-crd.yaml; do
+        if [[ -f "$crd_file" ]]; then
+            echo -e "${YELLOW}📋 Deploying CRD: $(basename "$crd_file")${NC}"
+            kubectl apply -f "$crd_file"
+        fi
+    done
+
+    # Wait for CRDs to be established
+    echo -e "${CYAN}⏳ Waiting for CRDs to be established...${NC}"
+    sleep 10
+
+    # Deploy sample instances if they exist
+    for instance_file in generated_specs/kubernetes/*-instance.yaml; do
+        if [[ -f "$instance_file" ]]; then
+            echo -e "${YELLOW}📦 Deploying instance: $(basename "$instance_file")${NC}"
+            kubectl apply -f "$instance_file"
+        fi
+    done
+
+    # Step 4: Show deployed resources
+    echo -e "${CYAN}📊 Showing deployed Kubernetes resources...${NC}"
+    echo -e "${GREEN}=== Deployed Custom Resources ===${NC}"
+
+    # Get all custom resources we created
+    if kubectl get crds | grep -q "cnoe.io"; then
+        kubectl get crds | grep "cnoe.io"
+
+        echo -e "${GREEN}=== Resource Instances ===${NC}"
+        # Show instances of our custom resources
+        for crd in $(kubectl get crds -o name | grep "cnoe.io"); do
+            resource_type=$(echo "$crd" | sed 's/customresourcedefinition.apiextensions.k8s.io\///' | sed 's/\..*//')
+            if kubectl get "$resource_type" &>/dev/null; then
+                echo -e "${YELLOW}$resource_type:${NC}"
+                kubectl get "$resource_type" -o wide || echo "  No instances found"
+                echo
+            fi
+        done
+    else
+        echo -e "${YELLOW}No custom resources deployed yet${NC}"
+    fi
+
+    # Show cluster info
+    echo -e "${GREEN}=== Cluster Information ===${NC}"
+    echo "Cluster: ai-platform-demo"
+    echo "Context: kind-ai-platform-demo"
+    echo "Use 'kubectl get <resource-type>' to explore your new APIs"
+
+    echo -e "${GREEN}✅ Complete demo finished successfully!${NC}"
+    echo -e "${CYAN}💡 Your Kubernetes APIs are now running in the Kind cluster${NC}"
+    echo -e "${CYAN}💡 Try: kubectl describe databaseservice my-databaseservice-instance${NC}"
 }
 
 run_interactive_mode() {
@@ -296,27 +373,34 @@ run_tests() {
 
 show_help() {
     cat << EOF
-${CYAN}AI Kubernetes API Generator - Run Script${NC}
+${CYAN}AI Kubernetes API Generator - Complete Demo Setup${NC}
 
 ${YELLOW}Usage:${NC}
     $0 [COMMAND] [OPTIONS]
 
 ${YELLOW}Commands:${NC}
-    demo        Run the demo application with examples
+    demo        Complete demo: Sets up Kind cluster, generates APIs, deploys to K8s
     interactive Start interactive mode for custom API generation
     test        Run the test suite
     setup       Set up the environment only (don't run anything)
     help        Show this help message
 
+${YELLOW}Demo Command:${NC}
+    $0 demo    # ONE COMMAND that does everything:
+              # 1. Creates Kind cluster automatically
+              # 2. Runs AI to generate Kubernetes APIs
+              # 3. Deploys CRDs and sample instances
+              # 4. Shows running resources
+
 ${YELLOW}Environment Variables:${NC}
-    OPENAI_API_KEY         Your OpenAI API key (REQUIRED)
-    OPENAI_MODEL           OpenAI model to use (default: gpt-4)
-    AI_AGENT_DEBUG         Enable debug mode (default: false)
-    AI_AGENT_MOCK_MODE     Use mock responses for testing (default: false)
+    OPENROUTER_API_KEY      Your OpenRouter API key (REQUIRED for AI)
+    OPENROUTER_MODEL        OpenRouter model to use (default: deepseek/free)
+    OPENAI_API_KEY          Alternative OpenAI API key
+    AI_AGENT_DEBUG          Enable debug mode (default: false)
 
 ${YELLOW}Examples:${NC}
-    # Set API key and run demo
-    export OPENAI_API_KEY='your-key-here'
+    # Set API key and run complete demo
+    export OPENROUTER_API_KEY='sk-or-v1-your-key-here'
     $0 demo
 
     # Interactive mode
@@ -327,6 +411,11 @@ ${YELLOW}Examples:${NC}
 
     # Setup only
     $0 setup
+
+${YELLOW}Prerequisites:${NC}
+    - Docker (running)
+    - kubectl (Kubernetes CLI)
+    - kind (Kubernetes in Docker)
 
 EOF
 }
