@@ -158,8 +158,6 @@ spec:
                 description: "{field_desc}" """
 
     crd_yaml += """
-    status:
-      type: object
   names:
     kind: """ + request.kind + """
     plural: """ + request.kind.lower() + """s
@@ -367,23 +365,12 @@ def main():
     interactive_demo()
 
 def try_deploy_to_cluster(openapi_filepath, crd_filepath, instance_filepath, combined_filepath, request: CodegenRequest):
-    """Offer to deploy resources to a Kind cluster."""
+    """Automatically deploy resources to a Kind cluster."""
     console.print("\n" + "="*60)
-    console.print("[bold yellow]🚀 Deploy to Kubernetes Cluster?[/bold yellow]")
+    console.print("[bold yellow]🚀 Deploying to Kubernetes Cluster...[/bold yellow]")
     console.print("="*60)
 
-    try:
-        response = input("\n🎯 Deploy your new Kubernetes API to a local Kind cluster? (y/N): ").strip().lower()
-        if response not in ['y', 'yes']:
-            console.print("[yellow]💡 Files are ready for manual deployment when you're ready![/yellow]")
-            return
-
-        deploy_to_kind_cluster(crd_filepath, instance_filepath, request)
-
-    except KeyboardInterrupt:
-        console.print("\n[yellow]👋 Skipping cluster deployment[/yellow]")
-    except EOFError:
-        console.print("\n[yellow]👋 Skipping cluster deployment[/yellow]")
+    deploy_to_kind_cluster(crd_filepath, instance_filepath, request)
 
 def deploy_to_kind_cluster(crd_filepath, instance_filepath, request: CodegenRequest):
     """Deploy resources to a Kind cluster with visual feedback."""

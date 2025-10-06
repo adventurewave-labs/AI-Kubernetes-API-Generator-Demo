@@ -1,14 +1,14 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "RedisCluster API",
+    "title": "DatabaseService API",
     "version": "v1alpha1",
-    "description": "Kubernetes RedisCluster API for managing Redis instances with memory, CPU, and persistence configuration"
+    "description": "DatabaseService API for managing database instances with connection strings, backup schedules, and auto-scaling capabilities"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "RedisCluster": {
+      "DatabaseService": {
         "type": "object",
         "properties": {
           "apiVersion": {
@@ -17,7 +17,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "Resource kind, e.g., RedisCluster"
+            "description": "Resource kind, e.g., DatabaseService"
           },
           "metadata": {
             "type": "object",
@@ -33,17 +33,17 @@
           "spec": {
             "type": "object",
             "properties": {
-              "memory": {
+              "connectionString": {
                 "type": "string",
-                "description": "Specification for memory"
+                "description": "Specification for connectionString"
               },
-              "cpu": {
+              "backupSchedule": {
                 "type": "string",
-                "description": "Specification for cpu"
+                "description": "Specification for backupSchedule"
               },
-              "persistence": {
+              "autoScaling": {
                 "type": "boolean",
-                "description": "Specification for persistence"
+                "description": "Specification for autoScaling"
               }
             }
           }

@@ -16,7 +16,7 @@ spec:
         properties:
           apiVersion:
             type: string
-            description: f"platform.cnoe.io/v1alpha1"
+            description: f"database.cnoe.io/v1alpha1"
           kind:
             type: string
             description: "RedisCluster"
@@ -34,8 +34,6 @@ spec:
               persistence:
                 type: boolean
                 description: "persistence" 
-    status:
-      type: object
   names:
     kind: RedisCluster
     plural: redisclusters
