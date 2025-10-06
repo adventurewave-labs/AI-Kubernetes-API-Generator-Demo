@@ -1,0 +1,54 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "RedisCluster API",
+    "version": "v1alpha1",
+    "description": "Kubernetes RedisCluster API for managing Redis clusters with memory, CPU, and persistence settings"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "RedisCluster": {
+        "type": "object",
+        "properties": {
+          "apiVersion": {
+            "type": "string",
+            "description": "API version, e.g., platform.cnoe.io/v1alpha1"
+          },
+          "kind": {
+            "type": "string",
+            "description": "Resource kind, e.g., RedisCluster"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              }
+            }
+          },
+          "spec": {
+            "type": "object",
+            "properties": {
+              "memory": {
+                "type": "string",
+                "description": "Specification for memory"
+              },
+              "cpu": {
+                "type": "string",
+                "description": "Specification for cpu"
+              },
+              "persistence": {
+                "type": "boolean",
+                "description": "Specification for persistence"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
