@@ -1,0 +1,439 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  GO_VERSION: '1.19'
+  PYTHON_VERSION: '3.9'
+  NODE_VERSION: '18'
+
+jobs:
+  # Python unit and integration tests
+  python-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+
+    services:
+      # Mock services for integration testing
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl start docker
+        sudo usermod -aG docker $USER
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-test.txt
+        pip install -e .
+
+    - name: Lint with flake8
+      run: |
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+    - name: Type check with mypy
+      run: |
+        mypy src/ --strict --ignore-missing-imports
+
+    - name: Security check with bandit
+      run: |
+        bandit -r src/ -f json -o security-report.json
+
+    - name: Run unit tests
+      run: |
+        pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=html --junitxml=unit-test-results.xml
+
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ -v --tb=short --junitxml=integration-test-results.xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: python-test-results-${{ matrix.python-version }}
+        path: |
+          unit-test-results.xml
+          integration-test-results.xml
+          htmlcov/
+          security-report.json
+
+  # End-to-end tests
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: python-tests
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-test.txt
+        pip install -e .
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Install kubectl and kind
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.19.0/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin/kind
+
+    - name: Create kind cluster
+      run: |
+        kind create cluster --wait 300s --name test-cluster
+
+    - name: Run E2E tests
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
+      run: |
+        pytest tests/e2e/ -v --tb=long --junitxml=e2e-test-results.xml -m "not slow"
+
+    - name: Run slow E2E tests
+      if: github.ref == 'refs/heads/main'
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
+      run: |
+        pytest tests/e2e/ -v --tb=long --junitxml=e2e-slow-test-results.xml -m "slow"
+
+    - name: Delete kind cluster
+      if: always()
+      run: |
+        kind delete cluster --name test-cluster
+
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: e2e-test-results
+        path: |
+          e2e-test-results.xml
+          e2e-slow-test-results.xml
+
+  # Performance tests
+  performance-tests:
+    runs-on: ubuntu-latest
+    needs: python-tests
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-test.txt
+        pip install -e .
+
+    - name: Run performance benchmarks
+      run: |
+        pytest tests/performance/ -v --benchmark-only --benchmark-json=benchmark-results.json
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: benchmark-results.json
+
+    - name: Performance regression check
+      run: |
+        python scripts/check_performance_regression.py --current benchmark-results.json --baseline .github/baselines/benchmark-baseline.json
+
+  # Go project validation tests
+  go-validation-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Install go tools
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        go install github.com/golang/mock/mockgen@latest
+        go install golang.org/x/tools/cmd/goimports@latest
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Run validation tests
+      run: |
+        pytest tests/validation/ -v --junitxml=validation-test-results.xml
+
+    - name: Upload validation results
+      uses: actions/upload-artifact@v3
+      with:
+        name: go-validation-results
+        path: validation-test-results.xml
+
+  # Playwright tests (if any UI components)
+  playwright-tests:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'ui-testing')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        npx playwright install --with-deps
+
+    - name: Run Playwright tests
+      run: |
+        npx playwright test
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+
+  # Security scanning
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: python-tests
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        languages: python
+
+  # Build and test Docker image
+  docker-build-test:
+    runs-on: ubuntu-latest
+    needs: [python-tests, validation-tests]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Container Registry
+      if: github.ref == 'refs/heads/main'
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ghcr.io/${{ github.repository }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and test Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: false
+        load: true
+        tags: test-image:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Test Docker image
+      run: |
+        docker run --rm test-image:latest --help
+
+    - name: Build and push Docker image
+      if: github.ref == 'refs/heads/main'
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Documentation build and deployment
+  docs-build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install documentation dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-docs.txt
+
+    - name: Build documentation
+      run: |
+        make docs
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build/html
+
+  # Test results summary
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: [python-tests, e2e-tests, performance-tests, go-validation-tests]
+    if: always()
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Generate test summary
+      run: |
+        python scripts/generate_test_summary.py \
+          --python-results "*-test-results.xml" \
+          --benchmark-results benchmark-results/benchmark-results.json \
+          --output test-summary.md
+
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('test-summary.md', 'utf8');
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+
+    - name: Upload test summary
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-summary
+        path: test-summary.md
+
+  # Slack notification on failure
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    needs: [python-tests, e2e-tests, performance-tests, go-validation-tests]
+    if: failure() && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Notify Slack on failure
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: "🚨 Test suite failed on main branch"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
