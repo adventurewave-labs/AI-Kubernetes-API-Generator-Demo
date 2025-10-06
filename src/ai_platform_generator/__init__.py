@@ -1,5 +1,5 @@
 """
-AI-Assisted Platform Extension Generator
+AI Kubernetes API Generator
 
 An AI agent that accelerates Kubernetes platform development through
 natural language to code generation.

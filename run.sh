@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # =============================================================================
-# AI-Assisted Platform Extension Generator - Comprehensive Run Script
+# AI Kubernetes API Generator - Comprehensive Run Script
 # =============================================================================
-# This script sets up the complete environment and runs the AI scaffolding agent
+# This script sets up the complete environment and runs the AI Kubernetes API generator
 # =============================================================================
 
 set -e  # Exit on any error
@@ -18,7 +18,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Project Configuration
-PROJECT_NAME="AI-Assisted Platform Extension Generator"
+PROJECT_NAME="AI Kubernetes API Generator"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_MIN_VERSION="3.8"
 
@@ -185,7 +185,7 @@ create_agent_config() {
     mkdir -p "$config_dir"
 
     cat > "$config_file" << 'EOF'
-# AI-Assisted Platform Extension Generator Configuration
+# AI Kubernetes API Generator Configuration
 agent:
   name: "AI Scaffolding Agent"
   version: "1.0.0"
@@ -296,7 +296,7 @@ run_tests() {
 
 show_help() {
     cat << EOF
-${CYAN}AI-Assisted Platform Extension Generator - Run Script${NC}
+${CYAN}AI Kubernetes API Generator - Run Script${NC}
 
 ${YELLOW}Usage:${NC}
     $0 [COMMAND] [OPTIONS]

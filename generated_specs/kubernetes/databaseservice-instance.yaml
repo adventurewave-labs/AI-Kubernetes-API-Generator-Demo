@@ -1,0 +1,9 @@
+apiVersion: cnoe.io/v1alpha1
+kind: DatabaseService
+metadata:
+  name: my-databaseservice-instance
+  namespace: default
+spec:
+  connectionStrings: example-value
+  backupSchedules: example-value
+  autoScaling: True

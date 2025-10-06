@@ -1,10 +1,10 @@
-# AI-Assisted Platform Extension Generator
+# AI Kubernetes API Generator
 
 🚀 **Transform natural language into production Kubernetes APIs in seconds**
 
 ## 🎯 Overview
 
-The AI-Assisted Platform Extension Generator uses advanced AI to transform natural language descriptions into complete Kubernetes API specifications, Custom Resource Definitions (CRDs), and controller code. Simply describe what you want to build, and watch as AI generates production-ready Kubernetes resources with stunning visual feedback.
+The AI Kubernetes API Generator uses advanced AI to transform natural language descriptions into complete Kubernetes API specifications, Custom Resource Definitions (CRDs), and controller code. Simply describe what you want to build, and watch as AI generates production-ready Kubernetes resources with stunning visual feedback.
 
 ## ✨ Key Features
 
@@ -50,8 +50,8 @@ The AI-Assisted Platform Extension Generator uses advanced AI to transform natur
 
 ```bash
 # Clone the repository
-git clone https://github.com/marcuspat/AI-Assisted-Platform-Extension-Generator.git
-cd AI-Assisted-Platform-Extension-Generator
+git clone https://github.com/marcuspat/AI-Kubernetes-API-Generator.git
+cd AI-Kubernetes-API-Generator
 
 # Install dependencies
 pip install -r requirements.txt
@@ -353,4 +353,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**🚀 Mission Accomplished**: Successfully built an AI-assisted platform extension generator that accelerates Kubernetes development through natural language processing and automated code generation.
+**🚀 Mission Accomplished**: Successfully built an AI Kubernetes API generator that accelerates Kubernetes development through natural language processing and automated code generation.

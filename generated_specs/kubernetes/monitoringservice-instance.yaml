@@ -1,0 +1,8 @@
+apiVersion: cnoe.io/v1alpha1
+kind: MonitoringService
+metadata:
+  name: my-monitoringservice-instance
+  namespace: default
+spec:
+  interval: 3
+  retentionPolicy: example-value
