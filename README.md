@@ -29,8 +29,8 @@ Generate production-ready Kubernetes APIs from plain English descriptions. Perfe
 
 ```bash
 # Clone the repository
-git clone https://github.com/marcuspat/AI-Kubernetes-API-Generator.git
-cd AI-Kubernetes-API-Generator
+git clone https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo.git
+cd AI-Kubernetes-API-Generator-Demo
 
 # Install dependencies
 pip install -r requirements.txt
