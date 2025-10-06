@@ -7,6 +7,7 @@ This demo showcases the full power of AI-driven API generation with real Kuberne
 import os
 import json
 import time
+import yaml
 from pathlib import Path
 from typing import Dict, Any
 
@@ -16,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from ai_platform_generator.agent import PlatformExtensionAgent, CodegenRequest
 from ai_platform_generator.codegen import CodeGenerator
+from ai_platform_generator.cluster_manager import KindClusterManager, ClusterStatus, DeploymentStatus
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -351,6 +353,9 @@ def interactive_demo():
         except Exception as e:
             console.print(f"[red]❌ Error: {e}[/red]")
 
+        # Ask if user wants to deploy to Kind cluster
+        try_deploy_to_cluster(openapi_filepath, crd_filepath, instance_filepath, combined_filepath, parsed_request)
+
     except KeyboardInterrupt:
         console.print("\n[yellow]👋 Demo cancelled[/yellow]")
     except EOFError:
@@ -360,6 +365,147 @@ def main():
     """Main demo function"""
     console.clear()
     interactive_demo()
+
+def try_deploy_to_cluster(openapi_filepath, crd_filepath, instance_filepath, combined_filepath, request: CodegenRequest):
+    """Offer to deploy resources to a Kind cluster."""
+    console.print("\n" + "="*60)
+    console.print("[bold yellow]🚀 Deploy to Kubernetes Cluster?[/bold yellow]")
+    console.print("="*60)
+
+    try:
+        response = input("\n🎯 Deploy your new Kubernetes API to a local Kind cluster? (y/N): ").strip().lower()
+        if response not in ['y', 'yes']:
+            console.print("[yellow]💡 Files are ready for manual deployment when you're ready![/yellow]")
+            return
+
+        deploy_to_kind_cluster(crd_filepath, instance_filepath, request)
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]👋 Skipping cluster deployment[/yellow]")
+    except EOFError:
+        console.print("\n[yellow]👋 Skipping cluster deployment[/yellow]")
+
+def deploy_to_kind_cluster(crd_filepath, instance_filepath, request: CodegenRequest):
+    """Deploy resources to a Kind cluster with visual feedback."""
+    console.print("\n[bold cyan]🚀 Starting Kubernetes Cluster Deployment...[/bold cyan]")
+
+    cluster_manager = KindClusterManager()
+
+    # Check prerequisites
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        task = progress.add_task("[cyan]🔍 Checking prerequisites...", total=None)
+
+        prerequisites_ok, issues = cluster_manager.check_prerequisites()
+
+        if not prerequisites_ok:
+            console.print("[red]❌ Missing prerequisites:[/red]")
+            for issue in issues:
+                console.print(f"   • {issue}")
+            console.print("\n[yellow]💡 Install required tools:[/yellow]")
+            console.print("   • Kind: https://kind.sigs.k8s.io/docs/user/quick-start/")
+            console.print("   • kubectl: https://kubernetes.io/docs/tasks/tools/")
+            console.print("   • Docker: https://docs.docker.com/get-docker/")
+            return
+
+        progress.update(task, description="[green]✅ Prerequisites checked!")
+
+        # Check cluster status
+        progress.update(task, description="[cyan]🏗️  Checking Kind cluster status...")
+        cluster_status = cluster_manager.get_cluster_status()
+
+        if not cluster_status.exists:
+            progress.update(task, description="[cyan]🏗️  Creating Kind cluster...")
+            success, message = cluster_manager.create_cluster()
+            if not success:
+                console.print(f"[red]❌ Failed to create cluster: {message}[/red]")
+                return
+            console.print("[green]✅ Kind cluster created successfully![/green]")
+        elif not cluster_status.running:
+            console.print("[yellow]⚠️  Cluster exists but may not be ready[/yellow]")
+        else:
+            console.print("[green]✅ Kind cluster is running![/green]")
+
+        # Deploy resources
+        progress.update(task, description="[cyan]🚀 Deploying Kubernetes resources...")
+        instance_name = f"my-{request.kind.lower()}-instance"
+
+        success, message = cluster_manager.deploy_resources(
+            str(crd_filepath),
+            str(instance_filepath),
+            request.kind
+        )
+
+        if not success:
+            console.print(f"[red]❌ Deployment failed: {message}[/red]")
+            return
+
+        console.print("[green]✅ Resources deployed to cluster![/green]")
+
+        # Verify deployment
+        progress.update(task, description="[cyan]🔍 Verifying deployment...")
+        time.sleep(2)  # Give resources time to register
+
+        deployment_status = cluster_manager.verify_deployment(request.kind, instance_name)
+
+        # Display deployment results
+        display_deployment_results(deployment_status, cluster_manager, request.kind, instance_name)
+
+def display_deployment_results(status: DeploymentStatus, cluster_manager: KindClusterManager, resource_kind: str, instance_name: str):
+    """Display impressive deployment results."""
+
+    console.print("\n" + "="*60)
+    console.print("[bold green]🎉 Deployment Results![/bold green]")
+    console.print("="*60)
+
+    # Create results table
+    results_table = Table(title="📊 Resource Status", show_header=True)
+    results_table.add_column("Component", style="cyan")
+    results_table.add_column("Status", style="white")
+    results_table.add_column("Details", style="yellow")
+
+    results_table.add_row(
+        "🏗️  Custom Resource Definition",
+        "✅ Applied" if status.crd_applied else "❌ Failed",
+        f"{instance_name}s.cnoe.io"
+    )
+    results_table.add_row(
+        "🎯 Resource Instance",
+        "✅ Applied" if status.instance_applied else "❌ Failed",
+        instance_name
+    )
+    results_table.add_row(
+        "📡 API Accessibility",
+        "✅ Ready" if status.resource_accessible else "❌ Not Ready",
+        f"kubectl get {resource_kind.lower()}s"
+    )
+    if status.resource_status:
+        results_table.add_row(
+            "📈 Current Status",
+            status.resource_status,
+            "Live cluster status"
+        )
+
+    console.print(results_table)
+
+    # Show next steps
+    console.print("\n[bold cyan]🎯 Next Commands:[/bold cyan]")
+    console.print(f"[green]# View your new resource:[/green]")
+    console.print(f"[blue]kubectl get {resource_kind.lower()}s --context kind-ai-platform-demo[/blue]")
+    console.print(f"[green]# Get detailed info:[/green]")
+    console.print(f"[blue]kubectl describe {resource_kind.lower()} {instance_name} --context kind-ai-platform-demo[/blue]")
+    console.print(f"[green]# View cluster nodes:[/green]")
+    console.print("[blue]kubectl get nodes --context kind-ai-platform-demo[/blue]")
+    console.print(f"[green]# Delete cluster when done:[/green]")
+    console.print("[blue]kind delete cluster --name ai-platform-demo[/blue]")
+
+    # Show cluster info
+    cluster_status = cluster_manager.get_cluster_status()
+    console.print(f"\n[dim]💡 Cluster: {cluster_status.name} | Nodes: {len(cluster_status.nodes)} | Context: kind-{cluster_status.name}[/dim]")
 
 if __name__ == "__main__":
     main()
