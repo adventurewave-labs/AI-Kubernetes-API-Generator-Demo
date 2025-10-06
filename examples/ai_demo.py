@@ -49,7 +49,7 @@ def demo_openrouter_ai():
             from ai_platform_generator.codegen import CodeGenerator
 
             # Initialize the AI agent with OpenRouter
-            model = os.getenv("OPENROUTER_MODEL", "google/gemma-2-9b-it:free")
+            model = os.getenv("OPENROUTER_MODEL", "microsoft/phi-3-medium-128k-free")
             print(f"🧠 Using model: {model}")
 
             agent = PlatformExtensionAgent(
@@ -120,6 +120,11 @@ def demo_openrouter_ai():
             except Exception as e:
                 print(f"❌ AI processing failed: {e}")
                 print("This might be due to API key issues or model availability")
+                print("🔍 Troubleshooting tips:")
+                print("   1. Verify your OpenRouter API key is valid")
+                print("   2. Check your account at https://openrouter.ai/keys")
+                print("   3. Try a different model with: export OPENROUTER_MODEL='anthropic/claude-3-haiku'")
+                print("   4. Make sure your account is verified and has credits")
                 return False
 
         else:
