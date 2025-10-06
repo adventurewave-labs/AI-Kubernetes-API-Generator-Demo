@@ -231,13 +231,136 @@ run_demo() {
 
     cd "$PROJECT_DIR"
 
-    # Step 1: Setup Kind cluster
-    echo -e "${CYAN}🏗️  Setting up Kind cluster...${NC}"
-    if ! command -v kind &> /dev/null; then
-        echo -e "${RED}❌ kind not found. Please install kind first${NC}"
-        echo -e "${YELLOW}Install with: curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 && chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind${NC}"
-        return 1
+    # Step 1: Install kubectl if needed
+    echo -e "${CYAN}🔧 Checking/Installing kubectl CLI...${NC}"
+    if ! command -v kubectl &> /dev/null; then
+        echo -e "${YELLOW}📦 Installing kubectl CLI automatically...${NC}"
+
+        # Detect OS and architecture
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+        case $ARCH in
+            x86_64) ARCH="amd64" ;;
+            aarch64|arm64) ARCH="arm64" ;;
+            *)
+                echo -e "${RED}❌ Unsupported architecture: $ARCH${NC}"
+                return 1
+                ;;
+        esac
+
+        # Download and install kubectl
+        KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+        KUBECTL_URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl"
+
+        echo -e "${CYAN}📥 Downloading kubectl ${KUBECTL_VERSION}...${NC}"
+
+        # Create temp directory for download
+        TEMP_DIR=$(mktemp -d)
+        cd "$TEMP_DIR"
+
+        # Download kubectl
+        if curl -Lo ./kubectl "$KUBECTL_URL"; then
+            chmod +x ./kubectl
+
+            # Try to install to /usr/local/bin (requires sudo)
+            if command -v sudo &> /dev/null && sudo -n true 2>/dev/null; then
+                echo -e "${CYAN}📦 Installing kubectl to /usr/local/bin...${NC}"
+                sudo mv ./kubectl /usr/local/bin/kubectl
+            else
+                # Fallback: install to ~/.local/bin
+                echo -e "${CYAN}📦 Installing kubectl to ~/.local/bin...${NC}"
+                mkdir -p ~/.local/bin
+                mv ./kubectl ~/.local/bin/kubectl
+
+                # Add ~/.local/bin to PATH if not already there
+                if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+                    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+                    export PATH="$HOME/.local/bin:$PATH"
+                    echo -e "${YELLOW}ℹ️  Added ~/.local/bin to PATH. You may need to restart your shell.${NC}"
+                fi
+            fi
+
+            echo -e "${GREEN}✅ kubectl installed successfully${NC}"
+        else
+            echo -e "${RED}❌ Failed to download kubectl${NC}"
+            cd "$PROJECT_DIR"
+            rm -rf "$TEMP_DIR"
+            return 1
+        fi
+
+        # Cleanup
+        cd "$PROJECT_DIR"
+        rm -rf "$TEMP_DIR"
+    else
+        echo -e "${GREEN}✅ kubectl CLI already installed${NC}"
     fi
+
+    # Step 2: Install kind if needed
+    echo -e "${CYAN}🔧 Checking/Installing kind CLI...${NC}"
+    if ! command -v kind &> /dev/null; then
+        echo -e "${YELLOW}📦 Installing kind CLI automatically...${NC}"
+
+        # Detect OS and architecture
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+        case $ARCH in
+            x86_64) ARCH="amd64" ;;
+            aarch64|arm64) ARCH="arm64" ;;
+            *)
+                echo -e "${RED}❌ Unsupported architecture: $ARCH${NC}"
+                return 1
+                ;;
+        esac
+
+        # Download and install kind
+        KIND_VERSION="v0.20.0"
+        KIND_URL="https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-${OS}-${ARCH}"
+
+        echo -e "${CYAN}📥 Downloading kind from: ${KIND_URL}${NC}"
+
+        # Create temp directory for download
+        TEMP_DIR=$(mktemp -d)
+        cd "$TEMP_DIR"
+
+        # Download kind
+        if curl -Lo ./kind "$KIND_URL"; then
+            chmod +x ./kind
+
+            # Try to install to /usr/local/bin (requires sudo)
+            if command -v sudo &> /dev/null && sudo -n true 2>/dev/null; then
+                echo -e "${CYAN}📦 Installing kind to /usr/local/bin...${NC}"
+                sudo mv ./kind /usr/local/bin/kind
+            else
+                # Fallback: install to ~/.local/bin
+                echo -e "${CYAN}📦 Installing kind to ~/.local/bin...${NC}"
+                mkdir -p ~/.local/bin
+                mv ./kind ~/.local/bin/kind
+
+                # Add ~/.local/bin to PATH if not already there
+                if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+                    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+                    export PATH="$HOME/.local/bin:$PATH"
+                    echo -e "${YELLOW}ℹ️  Added ~/.local/bin to PATH. You may need to restart your shell.${NC}"
+                fi
+            fi
+
+            echo -e "${GREEN}✅ kind installed successfully${NC}"
+        else
+            echo -e "${RED}❌ Failed to download kind${NC}"
+            cd "$PROJECT_DIR"
+            rm -rf "$TEMP_DIR"
+            return 1
+        fi
+
+        # Cleanup
+        cd "$PROJECT_DIR"
+        rm -rf "$TEMP_DIR"
+    else
+        echo -e "${GREEN}✅ kind CLI already installed${NC}"
+    fi
+
+    # Step 2: Setup Kind cluster
+    echo -e "${CYAN}🏗️  Setting up Kind cluster...${NC}"
 
     # Create Kind cluster if it doesn't exist
     if ! kind get clusters | grep -q "ai-platform-demo"; then
@@ -387,10 +510,11 @@ ${YELLOW}Commands:${NC}
 
 ${YELLOW}Demo Command:${NC}
     $0 demo    # ONE COMMAND that does everything:
-              # 1. Creates Kind cluster automatically
-              # 2. Runs AI to generate Kubernetes APIs
-              # 3. Deploys CRDs and sample instances
-              # 4. Shows running resources
+              # 1. Installs kubectl and kind automatically
+              # 2. Creates Kind cluster automatically
+              # 3. Runs AI to generate Kubernetes APIs
+              # 4. Deploys CRDs and sample instances
+              # 5. Shows running resources
 
 ${YELLOW}Environment Variables:${NC}
     OPENROUTER_API_KEY      Your OpenRouter API key (REQUIRED for AI)
@@ -414,8 +538,8 @@ ${YELLOW}Examples:${NC}
 
 ${YELLOW}Prerequisites:${NC}
     - Docker (running)
-    - kubectl (Kubernetes CLI)
-    - kind (Kubernetes in Docker)
+    - curl (for downloading tools)
+    - Everything else is installed automatically!
 
 EOF
 }

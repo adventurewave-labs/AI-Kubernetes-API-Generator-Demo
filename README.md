@@ -20,8 +20,10 @@ Generate production-ready Kubernetes APIs from plain English descriptions. Perfe
 
 - Python 3.8+
 - Docker (running)
-- kubectl and kind CLI tools
+- curl (usually pre-installed)
 - OpenRouter API key (free tier available)
+
+**Note**: kubectl and kind are installed automatically by the demo script!
 
 ### One-Command Demo Setup
 
@@ -42,18 +44,25 @@ export OPENROUTER_MODEL="deepseek/deepseek-chat-v3.1:free"
 ```
 
 **The demo command automatically:**
-1. ✅ Creates Kind cluster if needed
-2. 🤖 Generates Kubernetes APIs from natural language
-3. 🚀 Deploys CRDs and sample instances to the cluster
-4. 📊 Shows running resources and usage instructions
+1. 🔧 Installs kubectl and kind CLI tools
+2. ✅ Creates Kind cluster if needed
+3. 🤖 Generates Kubernetes APIs from natural language
+4. 🚀 Deploys CRDs and sample instances to the cluster
+5. 📊 Shows running resources and usage instructions
 
 ### Manual Setup (Alternative)
 
+If you prefer to install tools manually:
+
 ```bash
-# Create Kind cluster manually
+# Install kubectl and kind manually, then:
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind
+
+# Create Kind cluster
 kind create cluster --name ai-platform-demo
 
-# Run just the AI demo (no cluster setup)
+# Run just the AI demo (no automatic setup)
 python examples/ai_demo.py
 
 # Deploy generated resources manually
