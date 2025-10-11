@@ -132,27 +132,62 @@ validate_project_structure() {
 setup_python_environment() {
     echo -e "${CYAN}🏗️  Setting up Python environment...${NC}"
 
+    # Install system dependencies if missing
+    if ! command -v pip &> /dev/null; then
+        echo -e "${YELLOW}📦 Installing system Python packages...${NC}"
+        # Try different package managers
+        if command -v apt &> /dev/null; then
+            echo -e "${YELLOW}   Using apt to install python3-pip and python3-venv...${NC}"
+            sudo apt update && sudo apt install -y python3-pip python3-venv
+        elif command -v yum &> /dev/null; then
+            echo -e "${YELLOW}   Using yum to install python3-pip...${NC}"
+            sudo yum install -y python3-pip
+        elif command -v brew &> /dev/null; then
+            echo -e "${YELLOW}   Using brew to install python3...${NC}"
+            brew install python3
+        else
+            echo -e "${RED}❌ Cannot install pip automatically. Please install python3-pip manually.${NC}"
+            echo -e "${YELLOW}   On Ubuntu/Debian: sudo apt install python3-pip python3-venv${NC}"
+            echo -e "${YELLOW}   On CentOS/RHEL: sudo yum install python3-pip${NC}"
+            exit 1
+        fi
+    fi
+
     # Create virtual environment if it doesn't exist
     if [[ ! -d "$PROJECT_DIR/venv" ]]; then
         echo -e "${YELLOW}📦 Creating virtual environment...${NC}"
         python3 -m venv "$PROJECT_DIR/venv"
+        if [[ $? -ne 0 ]]; then
+            echo -e "${RED}❌ Failed to create virtual environment. Trying without venv...${NC}"
+            echo -e "${YELLOW}🔄 Using system Python directly...${NC}"
+            # Set up for system Python without venv
+            export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH}"
+        else
+            # Activate virtual environment
+            echo -e "${YELLOW}🔄 Activating virtual environment...${NC}"
+            source "$PROJECT_DIR/venv/bin/activate"
+        fi
+    else
+        # Activate virtual environment
+        echo -e "${YELLOW}🔄 Activating virtual environment...${NC}"
+        source "$PROJECT_DIR/venv/bin/activate"
     fi
 
-    # Activate virtual environment
-    echo -e "${YELLOW}🔄 Activating virtual environment...${NC}"
-    source "$PROJECT_DIR/venv/bin/activate"
-
-    # Upgrade pip
-    echo -e "${YELLOW}⬆️  Upgrading pip...${NC}"
-    pip install --upgrade pip
+    # Upgrade pip if in venv
+    if [[ -d "$PROJECT_DIR/venv" ]]; then
+        echo -e "${YELLOW}⬆️  Upgrading pip...${NC}"
+        pip install --upgrade pip
+    fi
 
     # Install requirements
     echo -e "${YELLOW}📥 Installing Python dependencies...${NC}"
     if [[ -f "$PROJECT_DIR/requirements.txt" ]]; then
         pip install -r "$PROJECT_DIR/requirements.txt"
     else
-        echo -e "${RED}❌ requirements.txt not found${NC}"
-        exit 1
+        echo -e "${YELLOW}📦 Installing core dependencies manually...${NC}"
+        # Install core packages if requirements.txt doesn't exist
+        pip install --upgrade pip
+        pip install requests openpyxl pyyaml
     fi
 
     echo -e "${GREEN}✅ Python environment setup complete${NC}"
