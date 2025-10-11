@@ -162,19 +162,55 @@ setup_python_environment() {
             echo -e "${YELLOW}🔄 Using system Python directly...${NC}"
             # Set up for system Python without venv
             export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH}"
+            VENV_AVAILABLE=false
         else
-            # Activate virtual environment
-            echo -e "${YELLOW}🔄 Activating virtual environment...${NC}"
-            source "$PROJECT_DIR/venv/bin/activate"
+            # Verify venv was created properly
+            if [[ -f "$PROJECT_DIR/venv/bin/activate" ]]; then
+                echo -e "${GREEN}✅ Virtual environment created successfully${NC}"
+                VENV_AVAILABLE=true
+            else
+                echo -e "${RED}❌ Virtual environment creation incomplete. Using system Python...${NC}"
+                echo -e "${YELLOW}🔄 Removing broken venv and using system Python directly...${NC}"
+                rm -rf "$PROJECT_DIR/venv"
+                export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH}"
+                VENV_AVAILABLE=false
+            fi
         fi
     else
-        # Activate virtual environment
+        # Check if venv is complete
+        if [[ -f "$PROJECT_DIR/venv/bin/activate" ]]; then
+            VENV_AVAILABLE=true
+        else
+            echo -e "${YELLOW}⚠️  Incomplete virtual environment found. Recreating...${NC}"
+            rm -rf "$PROJECT_DIR/venv"
+            echo -e "${YELLOW}📦 Creating virtual environment...${NC}"
+            python3 -m venv "$PROJECT_DIR/venv"
+            if [[ $? -ne 0 || ! -f "$PROJECT_DIR/venv/bin/activate" ]]; then
+                echo -e "${RED}❌ Failed to create virtual environment. Using system Python...${NC}"
+                export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH}"
+                VENV_AVAILABLE=false
+            else
+                echo -e "${GREEN}✅ Virtual environment recreated successfully${NC}"
+                VENV_AVAILABLE=true
+            fi
+        fi
+    fi
+
+    # Activate virtual environment if available
+    if [[ "$VENV_AVAILABLE" == true ]]; then
         echo -e "${YELLOW}🔄 Activating virtual environment...${NC}"
         source "$PROJECT_DIR/venv/bin/activate"
+        if [[ $? -ne 0 ]]; then
+            echo -e "${RED}❌ Failed to activate virtual environment. Using system Python...${NC}"
+            export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH}"
+            VENV_AVAILABLE=false
+        else
+            echo -e "${GREEN}✅ Virtual environment activated successfully${NC}"
+        fi
     fi
 
     # Upgrade pip if in venv
-    if [[ -d "$PROJECT_DIR/venv" ]]; then
+    if [[ "$VENV_AVAILABLE" == true ]]; then
         echo -e "${YELLOW}⬆️  Upgrading pip...${NC}"
         pip install --upgrade pip
     fi
