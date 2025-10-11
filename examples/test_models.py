@@ -14,7 +14,7 @@ def test_openrouter_models():
     """Test various OpenRouter models to find working ones"""
 
     # Set API key
-    os.environ["OPENROUTER_API_KEY"] = "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"
+    os.environ["OPENROUTER_API_KEY"] = os.getenv("OPENROUTER_API_KEY", "sk-or-v1-your-key-here")
 
     print("🧪 Testing OpenRouter Models")
     print("=" * 50)

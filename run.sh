@@ -40,7 +40,7 @@ export AZURE_OPENAI_ENDPOINT="${AZURE_OPENAI_ENDPOINT:-}"
 
 # OpenRouter API Configuration (ALTERNATIVE TO OPENAI)
 export OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}"
-export OPENROUTER_MODEL="${OPENROUTER_MODEL:-deepseek/deepseek-chat-v3.1:free}"
+export OPENROUTER_MODEL="${OPENROUTER_MODEL:-meta-llama/llama-3.2-3b-instruct:free}"
 
 # Project Environment Variables
 export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH}"
