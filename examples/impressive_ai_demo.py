@@ -116,22 +116,22 @@ def display_kubernetes_output(api_result: Dict[str, Any], request: CodegenReques
     console.print(layout)
 
 def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str]:
-    """Generate impressive Kubernetes YAML with multiple resources using proper YAML generation
+    """Generate impressive Kubernetes YAML with multiple resources using robust CRD generation
     Returns: (crd_yaml, instance_yaml, combined_yaml)
     """
 
-    # Create CRD structure as Python dict for proper YAML generation
+    # Build CRD structure with robust array handling
     crd_dict = {
         "apiVersion": "apiextensions.k8s.io/v1",
         "kind": "CustomResourceDefinition",
         "metadata": {
-            "name": f"{request.kind.lower()}s.{request.group.split('.')[-2]}.{request.group.split('.')[-1]}",
+            "name": f"{request.kind.lower()}s.{request.group}",
             "annotations": {
-                "cert-manager.io/inject-ca-from": f"{request.group.split('.')[-2]}-{request.group.split('.')[-1]}/{request.kind.lower()}-serving-cert"
+                "cert-manager.io/inject-ca-from": f"{request.group.split('.')[0]}/{request.kind.lower()}-serving-cert"
             }
         },
         "spec": {
-            "group": f"{request.group.split('.')[-2]}.{request.group.split('.')[-1]}",
+            "group": request.group,
             "versions": [{
                 "name": request.version,
                 "served": True,
@@ -141,12 +141,10 @@ def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str
                         "type": "object",
                         "properties": {
                             "apiVersion": {
-                                "type": "string",
-                                "description": f"{request.group}/{request.version}"
+                                "type": "string"
                             },
                             "kind": {
-                                "type": "string",
-                                "description": request.kind
+                                "type": "string"
                             },
                             "metadata": {
                                 "type": "object"
@@ -168,17 +166,17 @@ def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str
         }
     }
 
-    # Add spec properties with proper array handling
+    # Add spec properties with guaranteed proper array handling
     for field_name, field_info in request.spec_properties.items():
         field_type = field_info.get("type", "string") if isinstance(field_info, dict) else field_info
-        field_desc = field_info.get("description", field_name).strip() if isinstance(field_info, dict) else field_name
+        field_desc = field_info.get("description", f"Description for {field_name}")
 
         property_schema = {
             "type": field_type,
             "description": field_desc
         }
 
-        # Add items schema for array types with proper structure
+        # CRITICAL FIX: Always add items schema for array types
         if field_type == "array":
             property_schema["items"] = {
                 "type": "string",
@@ -205,7 +203,7 @@ def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str
 
     # Create instance structure
     instance_dict = {
-        "apiVersion": f"{request.group.split('.')[-2]}.{request.group.split('.')[-1]}/{request.version}",
+        "apiVersion": f"{request.group}/{request.version}",
         "kind": request.kind,
         "metadata": {
             "name": f"my-{request.kind.lower()}-instance",
