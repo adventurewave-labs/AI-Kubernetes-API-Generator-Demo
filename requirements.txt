@@ -1,7 +1,34 @@
+# AI Kubernetes API Generator - Core Dependencies
+
+# AI API Client
 openai>=2.0.0
+
+# Data Validation and Serialization
 pydantic>=2.0.0
+
+# HTTP Client
 httpx>=0.24.0
+
+# Web Framework (for potential API server)
 fastapi>=0.100.0
 uvicorn>=0.20.0
+
+# Terminal Formatting and UI
 rich>=13.0.0
+
+# YAML Processing
 PyYAML>=6.0.0
+
+# Kubernetes Client (for advanced features)
+kubernetes>=28.0.0
+
+# Requests
+requests>=2.31.0
+
+# Development Dependencies
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
+
+# Monitoring and Logging
+structlog>=23.0.0

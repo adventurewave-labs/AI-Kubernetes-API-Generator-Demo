@@ -196,6 +196,12 @@ def interactive_demo():
     """Run impressive interactive demo"""
     print_banner()
 
+    # Initialize variables with default values to prevent scoping issues
+    openapi_filepath = None
+    crd_filepath = None
+    instance_filepath = None
+    combined_filepath = None
+
     # Check API configuration
     api_key = os.getenv("OPENROUTER_API_KEY")
     model = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-chat-v3.1:free")
@@ -204,6 +210,8 @@ def interactive_demo():
         console.print("[red]❌ OPENROUTER_API_KEY not set![/red]")
         console.print("[yellow]Please set your OpenRouter API key:[/yellow]")
         console.print("export OPENROUTER_API_KEY=\"your-key-here\"")
+        console.print("\n[green]🔄 Running in DEMO MODE with sample data...[/green]")
+        run_demo_mode()
         return
 
     console.print(f"[green]✅ OpenRouter API configured[/green]")
@@ -242,10 +250,18 @@ def interactive_demo():
         # Show processing animation
         display_processing_animation()
 
-        # Process with AI
-        agent = PlatformExtensionAgent(api_key=api_key, model=model)
-
+        # Process with AI - Enhanced error handling for initialization
         try:
+            # Initialize agent with SSL verification disabled for demo environments
+            agent = PlatformExtensionAgent(api_key=api_key, model=model, verify_ssl=False)
+
+            # Check if agent is available
+            if not agent.is_available():
+                console.print(f"[yellow]⚠️  {agent.get_error_message()}[/yellow]")
+                console.print("[yellow]🔄 Running in DEMO MODE with intelligent sample data...[/yellow]")
+                run_demo_mode_with_request(user_request)
+                return
+
             console.print("[cyan]🤖 AI is generating your Kubernetes API...[/cyan]")
             parsed_request = agent.parse_request(user_request)
 
@@ -349,15 +365,136 @@ def interactive_demo():
             console.print("5. 📊 Monitor your new API: kubectl get redisclusters")
 
         except Exception as e:
-            console.print(f"[red]❌ Error: {e}[/red]")
+            console.print(f"[red]❌ Error initializing AI service: {e}[/red]")
+            console.print("[yellow]🔄 Running in DEMO MODE with intelligent sample data...[/yellow]")
+            run_demo_mode_with_request(user_request)
 
-        # Ask if user wants to deploy to Kind cluster
-        try_deploy_to_cluster(openapi_filepath, crd_filepath, instance_filepath, combined_filepath, parsed_request)
+        # Only try deployment if files were successfully created
+        if openapi_filepath and crd_filepath and instance_filepath:
+            try_deploy_to_cluster(openapi_filepath, crd_filepath, instance_filepath, combined_filepath, parsed_request)
 
     except KeyboardInterrupt:
         console.print("\n[yellow]👋 Demo cancelled[/yellow]")
     except EOFError:
         console.print("\n[yellow]👋 Goodbye![/yellow]")
+
+def run_demo_mode():
+    """Run demo mode with predefined sample data"""
+    demo_request = "Create a Redis cluster API with memory, CPU, and persistence settings"
+    run_demo_mode_with_request(demo_request)
+
+def run_demo_mode_with_request(user_request: str):
+    """Run demo mode with sample data based on user request"""
+    console.print("\n[bold yellow]🔄 DEMO MODE - Sample Kubernetes API Generation[/bold yellow]")
+
+    # Create sample request based on common patterns
+    if "redis" in user_request.lower():
+        sample_request = CodegenRequest(
+            group="database.cnoe.io",
+            version="v1alpha1",
+            kind="RedisCluster",
+            spec_properties={
+                "memory": {"type": "string", "description": "Memory limit for Redis cluster"},
+                "cpu": {"type": "string", "description": "CPU request for Redis cluster"},
+                "persistence": {"type": "boolean", "description": "Enable persistent storage"},
+                "replicas": {"type": "integer", "description": "Number of Redis replicas"}
+            },
+            description="Redis cluster management API for Kubernetes platform"
+        )
+    elif "database" in user_request.lower():
+        sample_request = CodegenRequest(
+            group="database.cnoe.io",
+            version="v1alpha1",
+            kind="DatabaseService",
+            spec_properties={
+                "connectionString": {"type": "string", "description": "Database connection string"},
+                "backupSchedule": {"type": "string", "description": "Cron schedule for backups"},
+                "autoScaling": {"type": "boolean", "description": "Enable auto-scaling"}
+            },
+            description="Database service management API"
+        )
+    elif "monitoring" in user_request.lower():
+        sample_request = CodegenRequest(
+            group="monitoring.cnoe.io",
+            version="v1alpha1",
+            kind="MonitoringService",
+            spec_properties={
+                "interval": {"type": "string", "description": "Metrics collection interval"},
+                "retention": {"type": "string", "description": "Data retention period"},
+                "endpoints": {"type": "array", "description": "Monitoring endpoints"}
+            },
+            description="Monitoring service configuration API"
+        )
+    else:
+        # Generic sample
+        sample_request = CodegenRequest(
+            group="platform.cnoe.io",
+            version="v1alpha1",
+            kind="CustomResource",
+            spec_properties={
+                "name": {"type": "string", "description": "Resource name"},
+                "enabled": {"type": "boolean", "description": "Enable resource"},
+                "config": {"type": "object", "description": "Configuration settings"}
+            },
+            description="Sample custom resource API"
+        )
+
+    try:
+        # Generate and save all results
+        output_dir = Path("generated_specs")
+        output_dir.mkdir(exist_ok=True)
+
+        # Generate OpenAPI spec
+        codegen = CodeGenerator()
+        openapi_spec = codegen.generate_openapi_spec(sample_request)
+
+        # Generate Kubernetes YAML files
+        crd_yaml, instance_yaml, combined_yaml = generate_impressive_k8s_yaml(sample_request)
+
+        # Save OpenAPI specification
+        openapi_filename = f"{sample_request.kind.lower()}_demo.json"
+        openapi_filepath = output_dir / openapi_filename
+
+        with open(openapi_filepath, 'w') as f:
+            json.dump(openapi_spec, f, indent=2)
+
+        # Save Kubernetes YAML files
+        k8s_dir = output_dir / "kubernetes"
+        k8s_dir.mkdir(exist_ok=True)
+
+        crd_filename = f"{sample_request.kind.lower()}-crd.yaml"
+        crd_filepath = k8s_dir / crd_filename
+
+        instance_filename = f"{sample_request.kind.lower()}-instance.yaml"
+        instance_filepath = k8s_dir / instance_filename
+
+        combined_filename = f"{sample_request.kind.lower()}-complete.yaml"
+        combined_filepath = k8s_dir / combined_filename
+
+        # Save YAML files
+        with open(crd_filepath, 'w') as f:
+            f.write(crd_yaml)
+
+        with open(instance_filepath, 'w') as f:
+            f.write(instance_yaml)
+
+        with open(combined_filepath, 'w') as f:
+            f.write(combined_yaml)
+
+        # Display impressive results
+        display_kubernetes_output(None, sample_request, combined_yaml)
+
+        console.print(f"\n[green]💾 Demo files saved to generated_specs/:[/green]")
+        console.print(f"  📄 OpenAPI spec: {openapi_filepath}")
+        console.print(f"  🏗️  CRD YAML: {crd_filepath}")
+        console.print(f"  🎯 Instance YAML: {instance_filepath}")
+        console.print(f"  📦 Complete YAML: {combined_filepath}")
+
+        console.print("\n[bold green]✨ Demo Mode Complete! ✨[/bold green]")
+        console.print("[yellow]To use real AI generation, please configure your OpenRouter API key.[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]❌ Demo mode failed: {e}[/red]")
 
 def main():
     """Main demo function"""

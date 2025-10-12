@@ -26,11 +26,14 @@ spec:
             type: object
             properties:
               interval:
-                type: integer
-                description: "interval" 
-              retentionPolicy:
                 type: string
-                description: "retentionPolicy" 
+                description: "Metrics collection interval" 
+              retention:
+                type: string
+                description: "Data retention period" 
+              endpoints:
+                type: array
+                description: "Monitoring endpoints" 
   names:
     kind: MonitoringService
     plural: monitoringservices
@@ -43,5 +46,6 @@ metadata:
   name: my-monitoringservice-instance
   namespace: default
 spec:
-  interval: 3
-  retentionPolicy: example-value
+  interval: example-value
+  retention: example-value
+  endpoints: example-value

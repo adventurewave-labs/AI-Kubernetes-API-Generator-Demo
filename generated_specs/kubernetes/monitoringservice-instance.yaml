@@ -4,5 +4,6 @@ metadata:
   name: my-monitoringservice-instance
   namespace: default
 spec:
-  interval: 3
-  retentionPolicy: example-value
+  interval: example-value
+  retention: example-value
+  endpoints: example-value

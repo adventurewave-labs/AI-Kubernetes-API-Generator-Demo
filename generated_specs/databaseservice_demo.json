@@ -3,7 +3,7 @@
   "info": {
     "title": "DatabaseService API",
     "version": "v1alpha1",
-    "description": "DatabaseService API for managing database instances with connection strings, backup schedules, and auto-scaling capabilities"
+    "description": "Database service management API"
   },
   "paths": {},
   "components": {
@@ -33,17 +33,17 @@
           "spec": {
             "type": "object",
             "properties": {
-              "connectionStrings": {
+              "connectionString": {
                 "type": "string",
-                "description": "Specification for connectionStrings"
+                "description": "Database connection string"
               },
-              "backupSchedules": {
+              "backupSchedule": {
                 "type": "string",
-                "description": "Specification for backupSchedules"
+                "description": "Cron schedule for backups"
               },
               "autoScaling": {
                 "type": "boolean",
-                "description": "Specification for autoScaling"
+                "description": "Enable auto-scaling"
               }
             }
           }

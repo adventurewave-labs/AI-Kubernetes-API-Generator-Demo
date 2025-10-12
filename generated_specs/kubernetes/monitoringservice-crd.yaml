@@ -26,11 +26,14 @@ spec:
             type: object
             properties:
               interval:
-                type: integer
-                description: "interval" 
-              retentionPolicy:
                 type: string
-                description: "retentionPolicy" 
+                description: "Metrics collection interval" 
+              retention:
+                type: string
+                description: "Data retention period" 
+              endpoints:
+                type: array
+                description: "Monitoring endpoints" 
   names:
     kind: MonitoringService
     plural: monitoringservices

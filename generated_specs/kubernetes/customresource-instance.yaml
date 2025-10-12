@@ -1,0 +1,9 @@
+apiVersion: cnoe.io/v1alpha1
+kind: CustomResource
+metadata:
+  name: my-customresource-instance
+  namespace: default
+spec:
+  name: example-value
+  enabled: True
+  config: example-value

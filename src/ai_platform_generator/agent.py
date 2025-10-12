@@ -28,19 +28,91 @@ class CodegenRequest:
 class PlatformExtensionAgent:
     """AI Agent for generating Kubernetes platform extensions."""
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "anthropic/claude-3.5-sonnet"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "anthropic/claude-3.5-sonnet", verify_ssl: bool = True):
         """Initialize the agent with OpenRouter configuration."""
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+        self.model = model
+        self.verify_ssl = verify_ssl
+
+        # Enhanced initialization with better error handling
         if not self.api_key:
             raise ValueError("OPENROUTER_API_KEY environment variable is required")
 
-        self.model = model
-        self.client = openai.OpenAI(
-            api_key=self.api_key,
-            base_url="https://openrouter.ai/api/v1"
-        )
+        try:
+            # Initialize client with SSL verification control
+            client_config = {
+                "api_key": self.api_key,
+                "base_url": "https://openrouter.ai/api/v1",
+                "timeout": 30.0  # Add timeout to prevent hanging
+            }
+
+            # Allow SSL verification bypass for demo environments
+            if not self.verify_ssl:
+                import httpx
+                client_config["http_client"] = httpx.Client(verify=False)
+
+            self.client = openai.OpenAI(**client_config)
+
+            # Test connection with enhanced error handling
+            self._test_connection()
+        except Exception as e:
+            # Don't raise exception during initialization - allow fallback mode
+            self.client = None
+            self.initialization_error = str(e)
+            self._log_initialization_error(e)
 
         self.system_prompt = self._build_system_prompt()
+
+    def _log_initialization_error(self, error: Exception):
+        """Log initialization errors for debugging without raising exceptions."""
+        error_str = str(error).lower()
+        if "ssl" in error_str or "certificate" in error_str:
+            self.initialization_error_type = "SSL_CERTIFICATE_ERROR"
+        elif "connection" in error_str:
+            self.initialization_error_type = "CONNECTION_ERROR"
+        elif "401" in error_str or "authentication" in error_str:
+            self.initialization_error_type = "AUTHENTICATION_ERROR"
+        else:
+            self.initialization_error_type = "UNKNOWN_ERROR"
+
+    def is_available(self) -> bool:
+        """Check if the AI agent is available for API calls."""
+        return self.client is not None
+
+    def get_error_message(self) -> str:
+        """Get a user-friendly error message explaining the initialization failure."""
+        if not hasattr(self, 'initialization_error'):
+            return None
+
+        if self.initialization_error_type == "SSL_CERTIFICATE_ERROR":
+            return ("SSL certificate verification failed. This is common in demo environments. "
+                   "The system will continue in demo mode with sample data.")
+        elif self.initialization_error_type == "CONNECTION_ERROR":
+            return ("Unable to connect to OpenRouter API. Please check your internet connection. "
+                   "The system will continue in demo mode with sample data.")
+        elif self.initialization_error_type == "AUTHENTICATION_ERROR":
+            return ("API authentication failed. Please check your OpenRouter API key. "
+                   "The system will continue in demo mode with sample data.")
+        else:
+            return f"AI service unavailable ({self.initialization_error_type}). Using demo mode."
+
+    def _test_connection(self):
+        """Test the OpenRouter API connection."""
+        try:
+            # Simple test call to check API connectivity
+            models = self.client.models.list()
+            if not models.data:
+                raise ValueError("No models available - check API key and permissions")
+        except Exception as e:
+            error_str = str(e)
+            if "401" in error_str:
+                raise ValueError(f"Invalid API key: {e}")
+            elif "403" in error_str:
+                raise ValueError(f"API access forbidden: {e}")
+            elif "connection" in error_str.lower():
+                raise ValueError(f"Connection error: Unable to reach OpenRouter API. Check internet connection and API status.")
+            else:
+                raise ValueError(f"API connection test failed: {e}")
 
     def _build_system_prompt(self) -> str:
         """Build the system prompt for the AI agent."""
@@ -104,8 +176,11 @@ Important rules:
             CodegenRequest: Structured request for code generation
 
         Raises:
-            ValueError: If the AI response cannot be parsed
+            ValueError: If the AI response cannot be parsed or client is unavailable
         """
+        if not self.is_available():
+            raise ValueError(f"AI service unavailable: {self.get_error_message()}")
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -114,7 +189,8 @@ Important rules:
                     {"role": "user", "content": user_input}
                 ],
                 response_format={"type": "json_object"},
-                temperature=0.1
+                temperature=0.1,
+                timeout=60.0  # Add timeout for the API call
             )
 
             content = response.choices[0].message.content
@@ -140,10 +216,23 @@ Important rules:
         except json.JSONDecodeError as e:
             raise ValueError(f"Failed to parse AI response as JSON: {e}")
         except Exception as e:
-            error_str = str(e)
-            if "401" in error_str and "User not found" in error_str:
+            # Handle OpenAI exceptions dynamically to avoid attribute errors
+            error_type = type(e).__name__
+            error_str = str(e).lower()
+
+            if "timeout" in error_str or "timeout" in error_type.lower():
+                raise ValueError(f"API request timed out. Please try again or check your internet connection: {e}")
+            elif "rate limit" in error_str or "rate" in error_type.lower():
+                raise ValueError(f"API rate limit exceeded. Please wait and try again: {e}")
+            elif "connection" in error_str or "connection" in error_type.lower():
+                raise ValueError(f"Connection error: Unable to reach OpenRouter API. Check internet connection: {e}")
+            elif "authentication" in error_str or "unauthorized" in error_str or "401" in error_str:
+                raise ValueError(f"Authentication failed. Please check your API key: {e}")
+            elif "401" in error_str and "user not found" in error_str:
                 # Handle OpenRouter account issue - provide clear guidance
                 raise ValueError(f"OpenRouter account verification required. Your API key can list models but chat completions are restricted. Please verify your OpenRouter account at https://openrouter.ai/account or generate a new API key.")
+            elif "timeout" in error_str:
+                raise ValueError(f"Request timeout: The API call took too long. Please try again.")
             else:
                 raise ValueError(f"Error processing AI response: {e}")
 

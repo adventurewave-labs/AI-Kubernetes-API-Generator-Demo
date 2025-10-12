@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: databaseservices.cnoe.io
+  name: databases.cnoe.io
   annotations:
-    cert-manager.io/inject-ca-from: 'cnoe-io/databaseservice-serving-cert'
+    cert-manager.io/inject-ca-from: 'cnoe-io/database-serving-cert'
 spec:
   group: cnoe.io
   versions:
@@ -19,23 +19,23 @@ spec:
             description: f"database.cnoe.io/v1alpha1"
           kind:
             type: string
-            description: "DatabaseService"
+            description: "Database"
           metadata:
             type: object
           spec:
             type: object
             properties:
-              connectionString:
+              connectionStrings:
                 type: string
-                description: "Database connection string" 
+                description: "connectionStrings" 
               backupSchedule:
                 type: string
-                description: "Cron schedule for backups" 
+                description: "backupSchedule" 
               autoScaling:
-                type: boolean
-                description: "Enable auto-scaling" 
+                type: integer
+                description: "autoScaling" 
   names:
-    kind: DatabaseService
-    plural: databaseservices
-    singular: databaseservice
+    kind: Database
+    plural: databases
+    singular: database
   scope: Namespaced

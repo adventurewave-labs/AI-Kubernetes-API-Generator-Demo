@@ -4,6 +4,6 @@ metadata:
   name: my-databaseservice-instance
   namespace: default
 spec:
-  connectionStrings: example-value
-  backupSchedules: example-value
+  connectionString: example-value
+  backupSchedule: example-value
   autoScaling: True

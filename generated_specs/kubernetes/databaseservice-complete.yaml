@@ -25,15 +25,15 @@ spec:
           spec:
             type: object
             properties:
-              connectionStrings:
+              connectionString:
                 type: string
-                description: "connectionStrings" 
-              backupSchedules:
+                description: "Database connection string" 
+              backupSchedule:
                 type: string
-                description: "backupSchedules" 
+                description: "Cron schedule for backups" 
               autoScaling:
                 type: boolean
-                description: "autoScaling" 
+                description: "Enable auto-scaling" 
   names:
     kind: DatabaseService
     plural: databaseservices
@@ -46,6 +46,6 @@ metadata:
   name: my-databaseservice-instance
   namespace: default
 spec:
-  connectionStrings: example-value
-  backupSchedules: example-value
+  connectionString: example-value
+  backupSchedule: example-value
   autoScaling: True

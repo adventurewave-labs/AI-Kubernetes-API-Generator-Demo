@@ -27,13 +27,16 @@ spec:
             properties:
               memory:
                 type: string
-                description: "memory" 
+                description: "Memory limit for Redis cluster" 
               cpu:
                 type: string
-                description: "cpu" 
+                description: "CPU request for Redis cluster" 
               persistence:
                 type: boolean
-                description: "persistence" 
+                description: "Enable persistent storage" 
+              replicas:
+                type: integer
+                description: "Number of Redis replicas" 
   names:
     kind: RedisCluster
     plural: redisclusters

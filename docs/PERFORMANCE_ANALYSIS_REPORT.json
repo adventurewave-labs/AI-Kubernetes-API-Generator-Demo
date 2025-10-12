@@ -1,0 +1,148 @@
+{
+  "timestamp": "2025-10-12T00:51:39.903Z",
+  "systemSpecs": {
+    "platform": "linux",
+    "arch": "x64",
+    "nodeVersion": "v22.20.0",
+    "memory": {
+      "total": 31557320704,
+      "free": 12925726720,
+      "usage": "59.04%"
+    },
+    "cpu": {
+      "model": "Intel(R) Xeon(R) CPU E5-2670 v2 @ 2.50GHz",
+      "cores": 4,
+      "loadAverage": [
+        29.47,
+        24.57,
+        18.24
+      ]
+    },
+    "disk": {
+      "size": "97G",
+      "used": "48G",
+      "available": "50G",
+      "usage": "50%"
+    }
+  },
+  "baseline": {
+    "processStartup": {
+      "mean": 575.3601643999999,
+      "min": 215.809389,
+      "max": 975.0453079999997,
+      "stdDev": 234.4172183392409
+    },
+    "simpleMath": {
+      "operationsPerSecond": 894.9592174736497,
+      "meanTime": 111.73693510000003
+    },
+    "stringOperations": {
+      "operationsPerSecond": 0.18134904640460559,
+      "totalTime": 827134.20872
+    },
+    "arrayOperations": {
+      "map": 3.5553340000333264,
+      "filter": 3.8326479999814183,
+      "reduce": 3.977798000094481,
+      "sort": 5.371495999977924
+    },
+    "objectOperations": {
+      "operationsPerSecond": 1362.16269232472,
+      "totalTime": 7341.266983999987
+    }
+  },
+  "benchmarks": {
+    "commandExecution": {
+      "ls": {
+        "meanTime": 79.5684275999898,
+        "minTime": 7.439719999907538,
+        "maxTime": 180.4894300000742,
+        "successRate": 1,
+        "iterations": 5
+      },
+      "find": {
+        "meanTime": 56.735132799996066,
+        "minTime": 24.897940999944694,
+        "maxTime": 98.07937299995683,
+        "successRate": 0,
+        "iterations": 5
+      },
+      "grep": {
+        "meanTime": 1340.2806383999996,
+        "minTime": 596.9235420000041,
+        "maxTime": 1896.7975820000283,
+        "successRate": 0,
+        "iterations": 5
+      },
+      "node": {
+        "meanTime": 340.7937244000379,
+        "minTime": 232.8430230000522,
+        "maxTime": 456.0435600000201,
+        "successRate": 1,
+        "iterations": 5
+      },
+      "npm": {
+        "meanTime": 823.6359033999964,
+        "minTime": 755.3078570000362,
+        "maxTime": 1029.476655999897,
+        "successRate": 1,
+        "iterations": 5
+      }
+    },
+    "fileOperations": {
+      "writeSmall": 17.16987799992785,
+      "writeLarge": 2.0636520000407472,
+      "readSmall": 4.500912000075914,
+      "readLarge": 0.7986440000822768,
+      "copyFile": 38.34823999996297,
+      "deleteFile": 20.377435000031255
+    }
+  },
+  "stressTests": {
+    "memoryStress": {
+      "iterations": 1000,
+      "totalTime": 21.99499899998773,
+      "objectsCreated": 1000,
+      "finalMemoryUsage": 80407816,
+      "memoryGrowthRate": 80407.816
+    },
+    "cpuStress": {
+      "duration": 5000.062264999957,
+      "operations": 110867000,
+      "operationsPerSecond": 22173123.878088538
+    },
+    "fileStress": {
+      "filesCreated": 100,
+      "totalTime": 372.0213839999633,
+      "filesPerSecond": 268.8017525358431
+    }
+  },
+  "resourceUsage": [],
+  "concurrentTests": {
+    "1": {
+      "totalTime": 73.913855999941,
+      "averageTimePerTask": 73.913855999941,
+      "throughput": 13.52926303832394
+    },
+    "2": {
+      "totalTime": 122.69999899994582,
+      "averageTimePerTask": 61.34999949997291,
+      "throughput": 16.29991863325837
+    },
+    "4": {
+      "totalTime": 152.7630740000168,
+      "averageTimePerTask": 38.1907685000042,
+      "throughput": 26.18433823870002
+    },
+    "8": {
+      "totalTime": 449.07280699990224,
+      "averageTimePerTask": 56.13410087498778,
+      "throughput": 17.814483253718237
+    },
+    "16": {
+      "totalTime": 178.73072500003036,
+      "averageTimePerTask": 11.170670312501898,
+      "throughput": 89.52014266152214
+    }
+  }
+}

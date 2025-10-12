@@ -7,3 +7,4 @@ spec:
   memory: example-value
   cpu: example-value
   persistence: True
+  replicas: 3

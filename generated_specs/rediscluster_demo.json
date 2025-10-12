@@ -3,7 +3,7 @@
   "info": {
     "title": "RedisCluster API",
     "version": "v1alpha1",
-    "description": "Kubernetes RedisCluster API for managing Redis instances with memory, CPU, and persistence configuration"
+    "description": "Redis cluster management API for Kubernetes platform"
   },
   "paths": {},
   "components": {
@@ -35,15 +35,19 @@
             "properties": {
               "memory": {
                 "type": "string",
-                "description": "Specification for memory"
+                "description": "Memory limit for Redis cluster"
               },
               "cpu": {
                 "type": "string",
-                "description": "Specification for cpu"
+                "description": "CPU request for Redis cluster"
               },
               "persistence": {
                 "type": "boolean",
-                "description": "Specification for persistence"
+                "description": "Enable persistent storage"
+              },
+              "replicas": {
+                "type": "integer",
+                "description": "Number of Redis replicas"
               }
             }
           }

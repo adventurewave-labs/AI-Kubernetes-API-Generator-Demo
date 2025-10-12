@@ -1,23 +1,23 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "MonitoringService API",
+    "title": "Database API",
     "version": "v1alpha1",
-    "description": "Monitoring service configuration API"
+    "description": "Database service API for managing database connections, backups, and auto-scaling"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "MonitoringService": {
+      "Database": {
         "type": "object",
         "properties": {
           "apiVersion": {
             "type": "string",
-            "description": "API version, e.g., monitoring.cnoe.io/v1alpha1"
+            "description": "API version, e.g., database.cnoe.io/v1alpha1"
           },
           "kind": {
             "type": "string",
-            "description": "Resource kind, e.g., MonitoringService"
+            "description": "Resource kind, e.g., Database"
           },
           "metadata": {
             "type": "object",
@@ -33,17 +33,17 @@
           "spec": {
             "type": "object",
             "properties": {
-              "interval": {
+              "connectionStrings": {
                 "type": "string",
-                "description": "Metrics collection interval"
+                "description": "Specification for connectionStrings"
               },
-              "retention": {
+              "backupSchedule": {
                 "type": "string",
-                "description": "Data retention period"
+                "description": "Specification for backupSchedule"
               },
-              "endpoints": {
-                "type": "array",
-                "description": "Monitoring endpoints"
+              "autoScaling": {
+                "type": "integer",
+                "description": "Specification for autoScaling"
               }
             }
           }
