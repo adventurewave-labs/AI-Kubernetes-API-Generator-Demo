@@ -116,64 +116,76 @@ def display_kubernetes_output(api_result: Dict[str, Any], request: CodegenReques
     console.print(layout)
 
 def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str]:
-    """Generate impressive Kubernetes YAML with multiple resources
+    """Generate impressive Kubernetes YAML with multiple resources using proper YAML generation
     Returns: (crd_yaml, instance_yaml, combined_yaml)
     """
 
-    # Generate CRD
-    crd_yaml = f"""apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: {request.kind.lower()}s.{request.group.split('.')[-2]}.{request.group.split('.')[-1]}
-  annotations:
-    cert-manager.io/inject-ca-from: '{request.group.split(".")[-2]}-{request.group.split(".")[-1]}/{request.kind.lower()}-serving-cert'
-spec:
-  group: {request.group.split('.')[-2]}.{request.group.split('.')[-1]}
-  versions:
-  - name: {request.version}
-    served: true
-    storage: true
-    schema:
-      openAPIV3Schema:
-        type: object
-        properties:
-          apiVersion:
-            type: string
-            description: f"{request.group}/{request.version}"
-          kind:
-            type: string
-            description: "{request.kind}"
-          metadata:
-            type: object
-          spec:
-            type: object
-            properties:"""
+    # Create CRD structure as Python dict for proper YAML generation
+    crd_dict = {
+        "apiVersion": "apiextensions.k8s.io/v1",
+        "kind": "CustomResourceDefinition",
+        "metadata": {
+            "name": f"{request.kind.lower()}s.{request.group.split('.')[-2]}.{request.group.split('.')[-1]}",
+            "annotations": {
+                "cert-manager.io/inject-ca-from": f"{request.group.split('.')[-2]}-{request.group.split('.')[-1]}/{request.kind.lower()}-serving-cert"
+            }
+        },
+        "spec": {
+            "group": f"{request.group.split('.')[-2]}.{request.group.split('.')[-1]}",
+            "versions": [{
+                "name": request.version,
+                "served": True,
+                "storage": True,
+                "schema": {
+                    "openAPIV3Schema": {
+                        "type": "object",
+                        "properties": {
+                            "apiVersion": {
+                                "type": "string",
+                                "description": f"{request.group}/{request.version}"
+                            },
+                            "kind": {
+                                "type": "string",
+                                "description": request.kind
+                            },
+                            "metadata": {
+                                "type": "object"
+                            },
+                            "spec": {
+                                "type": "object",
+                                "properties": {}
+                            }
+                        }
+                    }
+                }
+            }],
+            "names": {
+                "kind": request.kind,
+                "plural": f"{request.kind.lower()}s",
+                "singular": request.kind.lower()
+            },
+            "scope": "Namespaced"
+        }
+    }
 
+    # Add spec properties with proper array handling
     for field_name, field_info in request.spec_properties.items():
         field_type = field_info.get("type", "string") if isinstance(field_info, dict) else field_info
-        field_desc = field_info.get("description", field_name) if isinstance(field_info, dict) else field_name
+        field_desc = field_info.get("description", field_name).strip() if isinstance(field_info, dict) else field_name
 
-        # Add array items schema for array types
+        property_schema = {
+            "type": field_type,
+            "description": field_desc
+        }
+
+        # Add items schema for array types with proper structure
         if field_type == "array":
-            crd_yaml += f"""
-              {field_name}:
-                type: {field_type}
-                description: "{field_desc}"
-                items:
-                  type: string
-                  description: "Array item for {field_name}" """
-        else:
-            crd_yaml += f"""
-              {field_name}:
-                type: {field_type}
-                description: "{field_desc}" """
+            property_schema["items"] = {
+                "type": "string",
+                "description": f"Array item for {field_name}"
+            }
 
-    crd_yaml += """
-  names:
-    kind: """ + request.kind + """
-    plural: """ + request.kind.lower() + """s
-    singular: """ + request.kind.lower() + """
-  scope: Namespaced"""
+        crd_dict["spec"]["versions"][0]["schema"]["openAPIV3Schema"]["properties"]["spec"]["properties"][field_name] = property_schema
 
     # Generate Sample Instance
     sample_spec = {}
@@ -191,17 +203,21 @@ spec:
         else:
             sample_spec[field_name] = "example-value"
 
-    instance_yaml = f"""apiVersion: {request.group.split('.')[-2]}.{request.group.split('.')[-1]}/{request.version}
-kind: {request.kind}
-metadata:
-  name: my-{request.kind.lower()}-instance
-  namespace: default
-spec:
-"""
-    for field_name, value in sample_spec.items():
-        instance_yaml += f"  {field_name}: {value}\n"
+    # Create instance structure
+    instance_dict = {
+        "apiVersion": f"{request.group.split('.')[-2]}.{request.group.split('.')[-1]}/{request.version}",
+        "kind": request.kind,
+        "metadata": {
+            "name": f"my-{request.kind.lower()}-instance",
+            "namespace": "default"
+        },
+        "spec": sample_spec
+    }
 
-    combined_yaml = crd_yaml + "\n---\n" + instance_yaml
+    # Convert to YAML strings with proper formatting
+    crd_yaml = yaml.dump(crd_dict, default_flow_style=False, sort_keys=False)
+    instance_yaml = yaml.dump(instance_dict, default_flow_style=False, sort_keys=False)
+    combined_yaml = crd_yaml + "---\n" + instance_yaml
 
     return crd_yaml, instance_yaml, combined_yaml
 
