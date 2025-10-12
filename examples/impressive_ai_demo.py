@@ -152,7 +152,18 @@ spec:
     for field_name, field_info in request.spec_properties.items():
         field_type = field_info.get("type", "string") if isinstance(field_info, dict) else field_info
         field_desc = field_info.get("description", field_name) if isinstance(field_info, dict) else field_name
-        crd_yaml += f"""
+
+        # Add array items schema for array types
+        if field_type == "array":
+            crd_yaml += f"""
+              {field_name}:
+                type: {field_type}
+                description: "{field_desc}"
+                items:
+                  type: string
+                  description: "Array item for {field_name}" """
+        else:
+            crd_yaml += f"""
               {field_name}:
                 type: {field_type}
                 description: "{field_desc}" """
@@ -175,6 +186,8 @@ spec:
             sample_spec[field_name] = 3
         elif field_type == "boolean":
             sample_spec[field_name] = True
+        elif field_type == "array":
+            sample_spec[field_name] = ["item1", "item2", "item3"]
         else:
             sample_spec[field_name] = "example-value"
 
