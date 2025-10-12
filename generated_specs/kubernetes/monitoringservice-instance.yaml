@@ -1,4 +1,4 @@
-apiVersion: cnoe.io/v1alpha1
+apiVersion: monitoring.cnoe.io/v1alpha1
 kind: MonitoringService
 metadata:
   name: my-monitoringservice-instance
@@ -6,4 +6,7 @@ metadata:
 spec:
   interval: example-value
   retention: example-value
-  endpoints: example-value
+  endpoints:
+  - item1
+  - item2
+  - item3

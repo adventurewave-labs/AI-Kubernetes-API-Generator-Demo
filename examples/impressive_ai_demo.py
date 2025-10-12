@@ -529,82 +529,98 @@ def main():
     interactive_demo()
 
 def try_deploy_to_cluster(openapi_filepath, crd_filepath, instance_filepath, combined_filepath, request: CodegenRequest):
-    """Automatically deploy resources to a Kind cluster."""
+    """Automatically deploy resources to a Kind cluster with graceful error handling."""
     console.print("\n" + "="*60)
-    console.print("[bold yellow]🚀 Deploying to Kubernetes Cluster...[/bold yellow]")
+    console.print("[bold yellow]🚀 Attempting Kubernetes Cluster Deployment...[/bold yellow]")
     console.print("="*60)
 
-    deploy_to_kind_cluster(crd_filepath, instance_filepath, request)
+    try:
+        deploy_to_kind_cluster(crd_filepath, instance_filepath, request)
+    except Exception as e:
+        console.print(f"\n[yellow]⚠️  Cluster deployment failed: {str(e)}[/yellow]")
+        console.print("[yellow]💡 This is normal in environments without Docker or Kind support[/yellow]")
+        console.print("[green]✅ Your Kubernetes resources were generated successfully and are ready for manual deployment![/green]")
+
+        console.print("\n[bold cyan]📁 Manual Deployment Instructions:[/bold cyan]")
+        console.print(f"[blue]1. Deploy CRD: kubectl apply -f {crd_filepath}[/blue]")
+        console.print(f"[blue]2. Deploy instance: kubectl apply -f {instance_filepath}[/blue]")
+        console.print(f"[blue]3. Or deploy all: kubectl apply -f {combined_filepath}[/blue]")
 
 def deploy_to_kind_cluster(crd_filepath, instance_filepath, request: CodegenRequest):
-    """Deploy resources to a Kind cluster with visual feedback."""
+    """Deploy resources to a Kind cluster with visual feedback and error handling."""
     console.print("\n[bold cyan]🚀 Starting Kubernetes Cluster Deployment...[/bold cyan]")
 
-    cluster_manager = KindClusterManager()
+    try:
+        cluster_manager = KindClusterManager()
 
-    # Check prerequisites
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-        transient=True,
-    ) as progress:
-        task = progress.add_task("[cyan]🔍 Checking prerequisites...", total=None)
+        # Check prerequisites
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+            transient=True,
+        ) as progress:
+            task = progress.add_task("[cyan]🔍 Checking prerequisites...", total=None)
 
-        prerequisites_ok, issues = cluster_manager.check_prerequisites()
+            prerequisites_ok, issues = cluster_manager.check_prerequisites()
 
-        if not prerequisites_ok:
-            console.print("[red]❌ Missing prerequisites:[/red]")
-            for issue in issues:
-                console.print(f"   • {issue}")
-            console.print("\n[yellow]💡 Install required tools:[/yellow]")
-            console.print("   • Kind: https://kind.sigs.k8s.io/docs/user/quick-start/")
-            console.print("   • kubectl: https://kubernetes.io/docs/tasks/tools/")
-            console.print("   • Docker: https://docs.docker.com/get-docker/")
-            return
+            if not prerequisites_ok:
+                console.print("[red]❌ Missing prerequisites:[/red]")
+                for issue in issues:
+                    console.print(f"   • {issue}")
+                console.print("\n[yellow]💡 This is normal in codespace or restricted environments[/yellow]")
+                console.print("[yellow]💡 Your Kubernetes YAML files are ready for manual deployment[/yellow]")
+                raise Exception(f"Missing prerequisites: {'; '.join(issues)}")
 
-        progress.update(task, description="[green]✅ Prerequisites checked!")
+            progress.update(task, description="[green]✅ Prerequisites checked!")
 
-        # Check cluster status
-        progress.update(task, description="[cyan]🏗️  Checking Kind cluster status...")
-        cluster_status = cluster_manager.get_cluster_status()
+            # Check cluster status
+            progress.update(task, description="[cyan]🏗️  Checking Kind cluster status...")
+            cluster_status = cluster_manager.get_cluster_status()
 
-        if not cluster_status.exists:
-            progress.update(task, description="[cyan]🏗️  Creating Kind cluster...")
-            success, message = cluster_manager.create_cluster()
+            if not cluster_status.exists:
+                progress.update(task, description="[cyan]🏗️  Creating Kind cluster...")
+                success, message = cluster_manager.create_cluster()
+                if not success:
+                    console.print(f"[red]❌ Failed to create cluster: {message}[/red]")
+                    raise Exception(f"Cluster creation failed: {message}")
+                console.print("[green]✅ Kind cluster created successfully![/green]")
+            elif not cluster_status.running:
+                console.print("[yellow]⚠️  Cluster exists but may not be ready[/yellow]")
+                if not cluster_status.kubectl_accessible:
+                    console.print("[red]❌ Cluster is not accessible via kubectl[/red]")
+                    raise Exception("Cluster exists but is not accessible")
+            else:
+                console.print("[green]✅ Kind cluster is running![/green]")
+
+            # Deploy resources
+            progress.update(task, description="[cyan]🚀 Deploying Kubernetes resources...")
+            instance_name = f"my-{request.kind.lower()}-instance"
+
+            success, message = cluster_manager.deploy_resources(
+                str(crd_filepath),
+                str(instance_filepath),
+                request.kind
+            )
+
             if not success:
-                console.print(f"[red]❌ Failed to create cluster: {message}[/red]")
-                return
-            console.print("[green]✅ Kind cluster created successfully![/green]")
-        elif not cluster_status.running:
-            console.print("[yellow]⚠️  Cluster exists but may not be ready[/yellow]")
-        else:
-            console.print("[green]✅ Kind cluster is running![/green]")
+                console.print(f"[red]❌ Deployment failed: {message}[/red]")
+                raise Exception(f"Resource deployment failed: {message}")
 
-        # Deploy resources
-        progress.update(task, description="[cyan]🚀 Deploying Kubernetes resources...")
-        instance_name = f"my-{request.kind.lower()}-instance"
+            console.print("[green]✅ Resources deployed to cluster![/green]")
 
-        success, message = cluster_manager.deploy_resources(
-            str(crd_filepath),
-            str(instance_filepath),
-            request.kind
-        )
+            # Verify deployment
+            progress.update(task, description="[cyan]🔍 Verifying deployment...")
+            time.sleep(2)  # Give resources time to register
 
-        if not success:
-            console.print(f"[red]❌ Deployment failed: {message}[/red]")
-            return
+            deployment_status = cluster_manager.verify_deployment(request.kind, instance_name)
 
-        console.print("[green]✅ Resources deployed to cluster![/green]")
+            # Display deployment results
+            display_deployment_results(deployment_status, cluster_manager, request.kind, instance_name)
 
-        # Verify deployment
-        progress.update(task, description="[cyan]🔍 Verifying deployment...")
-        time.sleep(2)  # Give resources time to register
-
-        deployment_status = cluster_manager.verify_deployment(request.kind, instance_name)
-
-        # Display deployment results
-        display_deployment_results(deployment_status, cluster_manager, request.kind, instance_name)
+    except Exception as e:
+        # Re-raise to be handled by the caller
+        raise e
 
 def display_deployment_results(status: DeploymentStatus, cluster_manager: KindClusterManager, resource_kind: str, instance_name: str):
     """Display impressive deployment results."""

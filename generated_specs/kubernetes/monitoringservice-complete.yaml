@@ -1,11 +1,11 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: monitoringservices.cnoe.io
+  name: monitoringservices.monitoring.cnoe.io
   annotations:
-    cert-manager.io/inject-ca-from: 'cnoe-io/monitoringservice-serving-cert'
+    cert-manager.io/inject-ca-from: monitoring/monitoringservice-serving-cert
 spec:
-  group: cnoe.io
+  group: monitoring.cnoe.io
   versions:
   - name: v1alpha1
     served: true
@@ -16,10 +16,8 @@ spec:
         properties:
           apiVersion:
             type: string
-            description: f"monitoring.cnoe.io/v1alpha1"
           kind:
             type: string
-            description: "MonitoringService"
           metadata:
             type: object
           spec:
@@ -27,20 +25,23 @@ spec:
             properties:
               interval:
                 type: string
-                description: "Metrics collection interval" 
+                description: Metrics collection interval
               retention:
                 type: string
-                description: "Data retention period" 
+                description: Data retention period
               endpoints:
                 type: array
-                description: "Monitoring endpoints" 
+                description: Monitoring endpoints
+                items:
+                  type: string
+                  description: Array item for endpoints
   names:
     kind: MonitoringService
     plural: monitoringservices
     singular: monitoringservice
   scope: Namespaced
 ---
-apiVersion: cnoe.io/v1alpha1
+apiVersion: monitoring.cnoe.io/v1alpha1
 kind: MonitoringService
 metadata:
   name: my-monitoringservice-instance
@@ -48,4 +49,7 @@ metadata:
 spec:
   interval: example-value
   retention: example-value
-  endpoints: example-value
+  endpoints:
+  - item1
+  - item2
+  - item3
