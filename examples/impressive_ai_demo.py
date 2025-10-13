@@ -183,20 +183,11 @@ def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str
                 "description": f"Array item for {field_name}"
             }
         elif field_type == "object":
-            # CRITICAL FIX: Objects must have properties defined in OpenAPI v3 schema
-            property_schema["properties"] = {
-                "key": {
-                    "type": "string",
-                    "description": f"Configuration key for {field_name}"
-                },
-                "value": {
-                    "type": "string",
-                    "description": f"Configuration value for {field_name}"
-                }
-            }
-            # Allow additional properties for flexibility
+            # CRITICAL FIX: Use only additionalProperties for flexible object schema
+            # properties and additionalProperties are mutually exclusive in OpenAPI v3
             property_schema["additionalProperties"] = {
-                "type": "string"
+                "type": "string",
+                "description": f"Configuration properties for {field_name}"
             }
 
         crd_dict["spec"]["versions"][0]["schema"]["openAPIV3Schema"]["properties"]["spec"]["properties"][field_name] = property_schema
@@ -215,10 +206,11 @@ def generate_impressive_k8s_yaml(request: CodegenRequest) -> tuple[str, str, str
         elif field_type == "array":
             sample_spec[field_name] = ["item1", "item2", "item3"]
         elif field_type == "object":
-            # CRITICAL FIX: Object instances must match the object schema
+            # CRITICAL FIX: Object instances must match the additionalProperties schema
             sample_spec[field_name] = {
-                "key": "example-key",
-                "value": "example-value"
+                "setting1": "value1",
+                "setting2": "value2",
+                "config": "example-value"
             }
         else:
             sample_spec[field_name] = "example-value"

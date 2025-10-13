@@ -7,5 +7,6 @@ spec:
   name: example-value
   enabled: true
   config:
-    key: example-key
-    value: example-value
+    setting1: value1
+    setting2: value2
+    config: example-value
