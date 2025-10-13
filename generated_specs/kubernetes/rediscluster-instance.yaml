@@ -1,4 +1,4 @@
-apiVersion: cnoe.io/v1alpha1
+apiVersion: database.cnoe.io/v1alpha1
 kind: RedisCluster
 metadata:
   name: my-rediscluster-instance
@@ -6,5 +6,5 @@ metadata:
 spec:
   memory: example-value
   cpu: example-value
-  persistence: True
+  persistence: true
   replicas: 3

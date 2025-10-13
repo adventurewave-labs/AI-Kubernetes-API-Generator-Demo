@@ -1,11 +1,11 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: redisclusters.cnoe.io
+  name: redisclusters.database.cnoe.io
   annotations:
-    cert-manager.io/inject-ca-from: 'cnoe-io/rediscluster-serving-cert'
+    cert-manager.io/inject-ca-from: database/rediscluster-serving-cert
 spec:
-  group: cnoe.io
+  group: database.cnoe.io
   versions:
   - name: v1alpha1
     served: true
@@ -16,10 +16,8 @@ spec:
         properties:
           apiVersion:
             type: string
-            description: f"database.cnoe.io/v1alpha1"
           kind:
             type: string
-            description: "RedisCluster"
           metadata:
             type: object
           spec:
@@ -27,16 +25,16 @@ spec:
             properties:
               memory:
                 type: string
-                description: "Memory limit for Redis cluster" 
+                description: Memory limit for Redis cluster
               cpu:
                 type: string
-                description: "CPU request for Redis cluster" 
+                description: CPU request for Redis cluster
               persistence:
                 type: boolean
-                description: "Enable persistent storage" 
+                description: Enable persistent storage
               replicas:
                 type: integer
-                description: "Number of Redis replicas" 
+                description: Number of Redis replicas
   names:
     kind: RedisCluster
     plural: redisclusters
