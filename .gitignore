@@ -529,12 +529,13 @@ temp/
 # =============================================================================
 
 # Claude Flow generated files
+.claude/
 .claude/settings.local.json
 .mcp.json
 claude-flow.config.json
+.claude-flow/
 .swarm/
 .hive-mind/
-.claude-flow/
 memory/
 coordination/
 memory/claude-flow-data.json
