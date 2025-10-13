@@ -1,4 +1,4 @@
-# AI-Assisted Platform Extension Generator Configuration
+# AI Kubernetes API Generator Configuration
 agent:
   name: "AI Scaffolding Agent"
   version: "1.0.0"
