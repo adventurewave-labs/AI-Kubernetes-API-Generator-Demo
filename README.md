@@ -1,4 +1,4 @@
-# AI Kubernetes API Generator
+# AI Kubernetes API Generator v1.0.1
 
 Transform natural language descriptions into Kubernetes Custom Resource Definitions (CRDs) and OpenAPI specifications.
 
