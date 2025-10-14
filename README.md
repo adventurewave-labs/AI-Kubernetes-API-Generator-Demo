@@ -37,7 +37,6 @@ pip install -r requirements.txt
 
 # Get your free OpenRouter API key from https://openrouter.ai
 export OPENROUTER_API_KEY="your-openrouter-api-key-here"
-export OPENROUTER_MODEL="deepseek/deepseek-chat-v3.1:free"
 
 # RUN THE COMPLETE DEMO - One command does everything!
 ./run.sh demo
