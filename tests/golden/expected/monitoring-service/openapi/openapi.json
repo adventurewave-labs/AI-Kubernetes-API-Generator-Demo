@@ -1,0 +1,85 @@
+{
+  "components": {
+    "schemas": {
+      "MonitoringService": {
+        "description": "Schema for the MonitoringService resource.",
+        "properties": {
+          "apiVersion": {
+            "description": "API version, e.g. observability.cnoe.io/v1alpha1",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Resource kind, e.g. MonitoringService",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Standard Kubernetes object metadata.",
+            "properties": {
+              "name": {
+                "description": "Name of the resource.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "spec": {
+            "description": "Specification of the desired MonitoringService.",
+            "properties": {
+              "alertEnabled": {
+                "description": "Whether alert routing is enabled for this monitor.",
+                "type": "boolean"
+              },
+              "interval": {
+                "description": "Scrape interval, e.g. '30s' or '1m'.",
+                "type": "string"
+              },
+              "targets": {
+                "description": "List of target hostnames or service URIs to monitor.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "x-kubernetes-list-type": "atomic"
+              }
+            },
+            "required": [
+              "alertEnabled",
+              "interval",
+              "targets"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "description": "Observed state of the MonitoringService.",
+            "properties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "apiVersion",
+          "kind",
+          "metadata",
+          "spec"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "A monitoring service that scrapes targets at a fixed interval and emits alerts.",
+    "title": "MonitoringService API",
+    "version": "v1alpha1",
+    "x-kubernetes-gvk": {
+      "group": "observability.cnoe.io",
+      "kind": "MonitoringService",
+      "version": "v1alpha1"
+    },
+    "x-platform-generator-ir": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {}
+}

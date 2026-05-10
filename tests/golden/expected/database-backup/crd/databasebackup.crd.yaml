@@ -1,0 +1,50 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: databasebackups.database.cnoe.io
+spec:
+  group: database.cnoe.io
+  names:
+    kind: DatabaseBackup
+    listKind: DatabaseBackupList
+    plural: databasebackups
+    singular: databasebackup
+    shortNames: []
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: Schema for the DatabaseBackup resource.
+        properties:
+          spec:
+            description: Specification of the desired DatabaseBackup.
+            properties:
+              enabled:
+                description: Whether this backup schedule is active.
+                type: boolean
+              retentionDays:
+                description: How long to retain backups, in days.
+                format: int32
+                maximum: 3650
+                minimum: 1
+                type: integer
+              schedule:
+                description: Cron expression controlling when the backup job runs.
+                type: string
+            required:
+            - enabled
+            - retentionDays
+            - schedule
+            type: object
+          status:
+            description: Observed state of the DatabaseBackup.
+            properties: {}
+            type: object
+        required:
+        - spec
+        type: object
+    subresources:
+      status: {}

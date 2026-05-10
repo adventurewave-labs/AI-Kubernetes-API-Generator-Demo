@@ -231,3 +231,17 @@ Errors:
 6. Add unit + golden tests.
 7. Update this document and the ADR if the addition introduces a new
    user-facing artefact type.
+
+## 14. Future work
+
+A canonical golden-file matrix now lives at
+`tests/golden/expected/<scenario>/<generator>/...`, populated for the
+six built-in generators (`openapi`, `crd`, `instance`, `kustomization`,
+`mcp_server`, `go_controller`) across the eight demo scenarios. The
+matrix is regenerated with `pytest tests/golden --update-golden`, which
+rewrites the expectation files and marks each touched test `xfail` so
+the rewrite is visible in CI. Future work: extend the matrix to the
+integration-test layer (write the bundle through
+`FilesystemArtifactRepository` and re-checksum on the way back in), and
+fold the matrix into the user-interaction quickstart so the generated
+bundles double as smoke fixtures for downstream demos.

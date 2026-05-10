@@ -1,0 +1,53 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: mlpipelines.ai.platform.cnoe.io
+spec:
+  group: ai.platform.cnoe.io
+  names:
+    kind: MLPipeline
+    listKind: MLPipelineList
+    plural: mlpipelines
+    singular: mlpipeline
+    shortNames: []
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: Schema for the MLPipeline resource.
+        properties:
+          spec:
+            description: Specification of the desired MLPipeline.
+            properties:
+              gpuEnabled:
+                description: Whether GPU-backed nodes are used.
+                type: boolean
+              parallelism:
+                description: Maximum number of stages to run concurrently.
+                format: int32
+                maximum: 64
+                minimum: 1
+                type: integer
+              stages:
+                description: Ordered list of pipeline stage names.
+                items:
+                  type: string
+                type: array
+                x-kubernetes-list-type: atomic
+            required:
+            - gpuEnabled
+            - parallelism
+            - stages
+            type: object
+          status:
+            description: Observed state of the MLPipeline.
+            properties: {}
+            type: object
+        required:
+        - spec
+        type: object
+    subresources:
+      status: {}

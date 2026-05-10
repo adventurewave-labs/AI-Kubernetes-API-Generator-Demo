@@ -1,0 +1,50 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: monitoringservices.observability.cnoe.io
+spec:
+  group: observability.cnoe.io
+  names:
+    kind: MonitoringService
+    listKind: MonitoringServiceList
+    plural: monitoringservices
+    singular: monitoringservice
+    shortNames: []
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: Schema for the MonitoringService resource.
+        properties:
+          spec:
+            description: Specification of the desired MonitoringService.
+            properties:
+              alertEnabled:
+                description: Whether alert routing is enabled for this monitor.
+                type: boolean
+              interval:
+                description: Scrape interval, e.g. '30s' or '1m'.
+                type: string
+              targets:
+                description: List of target hostnames or service URIs to monitor.
+                items:
+                  type: string
+                type: array
+                x-kubernetes-list-type: atomic
+            required:
+            - alertEnabled
+            - interval
+            - targets
+            type: object
+          status:
+            description: Observed state of the MonitoringService.
+            properties: {}
+            type: object
+        required:
+        - spec
+        type: object
+    subresources:
+      status: {}

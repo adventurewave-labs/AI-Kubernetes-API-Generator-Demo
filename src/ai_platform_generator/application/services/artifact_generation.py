@@ -11,24 +11,28 @@ The service:
 5. Emits ``GenerationPlanned`` / ``ArtifactGenerated`` /
    ``ArtifactBundleSealed`` events.
 
-The ``ArtifactGenerator`` ``Protocol`` is defined locally so the service
-can be unit-tested with fake generators while Agent G's base class is
-in flight. Once Agent G publishes the canonical ``ArtifactGenerator``
-under ``domain.generation`` we'll replace this local definition with a
-direct re-export.
+The :class:`ArtifactGenerator` Template Method base class lives in
+:mod:`ai_platform_generator.domain.generation.artifact_generator` (Agent
+G's deliverable). The service depends on its public surface only —
+``name``, ``generate(ir, target)``, and the optional
+``expected_paths(ir, target)`` planning helper — so duck-typed test
+doubles continue to satisfy it without subclassing the ABC.
 """
 
 from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any
 
 from ai_platform_generator import __version__ as _TOOL_VERSION
 from ai_platform_generator.domain.events import (
     ArtifactBundleSealed,
     ArtifactGenerated,
     GenerationPlanned,
+)
+from ai_platform_generator.domain.generation.artifact_generator import (
+    ArtifactGenerator,
 )
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
@@ -47,31 +51,6 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     )
 
 
-# TODO(wave-2-agent-g): replace with ``from ai_platform_generator.domain.generation
-#   import ArtifactGenerator`` once Agent G's base class lands.
-@runtime_checkable
-class ArtifactGenerator(Protocol):
-    """Protocol every concrete generator implements.
-
-    A generator's ``generate`` method takes the IR and a target
-    directory and returns the list of ``RenderedArtifact``s it produced.
-    The orchestrating service does *not* call ``_plan`` / ``_render`` /
-    ``_post_process`` directly — those are template-method internals.
-    """
-
-    name: str
-
-    def generate(
-        self, ir: OpenAPIDocument, target: Path
-    ) -> list[RenderedArtifact]:
-        """Render every artefact this generator owns into ``target``."""
-
-    def expected_paths(
-        self, ir: OpenAPIDocument, target: Path
-    ) -> list[Path]:
-        """Return the paths this generator *would* write (for planning events)."""
-
-
 class ArtifactGenerationService:
     """Run all generators against an IR and seal the resulting bundle."""
 
@@ -80,13 +59,15 @@ class ArtifactGenerationService:
         repo: ArtifactRepository,
         events: TelemetrySink,
         clock: Clock,
-        generators: list[ArtifactGenerator] | None = None,
+        generators: list[Any] | None = None,
     ) -> None:
         self._repo = repo
         self._events = events
         self._clock = clock
         # Stable order: tests assert events are emitted in registration order.
-        self._generators: list[ArtifactGenerator] = list(generators or [])
+        # Typed loosely as ``Any`` so duck-typed test doubles satisfy the
+        # service without subclassing :class:`ArtifactGenerator`.
+        self._generators: list[Any] = list(generators or [])
 
     def run(
         self,
@@ -197,7 +178,7 @@ def _safe_git_sha() -> str:
 
 
 def _expected_paths(
-    gen: ArtifactGenerator, ir: OpenAPIDocument, target: Path
+    gen: Any, ir: OpenAPIDocument, target: Path
 ) -> list[Path]:
     """Return the planning paths advertised by ``gen``, if any."""
     fn = getattr(gen, "expected_paths", None)
@@ -305,3 +286,6 @@ def _make_bundle(
         files=tuple(files),
         manifest=manifest,
     )
+
+
+__all__ = ["ArtifactGenerationService", "ArtifactGenerator"]

@@ -14,6 +14,11 @@ from ai_platform_generator.domain.aggregates.artifact_bundle import (
     ProvenanceManifest,
     RenderedArtifact,
 )
+from ai_platform_generator.domain.aggregates.cluster import (
+    Cluster,
+    ClusterConfig,
+    InvalidCluster,
+)
 from ai_platform_generator.domain.aggregates.codegen_request import CodegenRequest
 from ai_platform_generator.domain.aggregates.generation_run import (
     Deployment,
@@ -32,9 +37,12 @@ __all__ = [
     "ArtifactBundle",
     "ArtifactRef",
     "ArtifactType",
+    "Cluster",
+    "ClusterConfig",
     "CodegenRequest",
     "Deployment",
     "GenerationRun",
+    "InvalidCluster",
     "JsonSchema",
     "OpenAPIDocument",
     "OpenApiInfo",

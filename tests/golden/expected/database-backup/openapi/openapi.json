@@ -1,0 +1,84 @@
+{
+  "components": {
+    "schemas": {
+      "DatabaseBackup": {
+        "description": "Schema for the DatabaseBackup resource.",
+        "properties": {
+          "apiVersion": {
+            "description": "API version, e.g. database.cnoe.io/v1alpha1",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Resource kind, e.g. DatabaseBackup",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Standard Kubernetes object metadata.",
+            "properties": {
+              "name": {
+                "description": "Name of the resource.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "spec": {
+            "description": "Specification of the desired DatabaseBackup.",
+            "properties": {
+              "enabled": {
+                "description": "Whether this backup schedule is active.",
+                "type": "boolean"
+              },
+              "retentionDays": {
+                "description": "How long to retain backups, in days.",
+                "format": "int32",
+                "maximum": 3650,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "schedule": {
+                "description": "Cron expression controlling when the backup job runs.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "enabled",
+              "retentionDays",
+              "schedule"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "description": "Observed state of the DatabaseBackup.",
+            "properties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "apiVersion",
+          "kind",
+          "metadata",
+          "spec"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "A scheduled backup job for an upstream database.",
+    "title": "DatabaseBackup API",
+    "version": "v1alpha1",
+    "x-kubernetes-gvk": {
+      "group": "database.cnoe.io",
+      "kind": "DatabaseBackup",
+      "version": "v1alpha1"
+    },
+    "x-platform-generator-ir": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {}
+}

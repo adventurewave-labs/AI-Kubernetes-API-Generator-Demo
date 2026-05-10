@@ -13,7 +13,13 @@ from __future__ import annotations
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
+from ai_platform_generator.domain.aggregates import (
+    Cluster,
+    ClusterConfig,
+    Deployment,
+)
 from ai_platform_generator.domain.errors import (
     ClusterCreationTimedOut,
     CrdNotEstablished,
@@ -35,11 +41,7 @@ from ai_platform_generator.domain.events import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
-    from ai_platform_generator.domain.aggregates import (
-        ArtifactBundle,
-        Cluster,
-        Deployment,
-    )
+    from ai_platform_generator.domain.aggregates import ArtifactBundle
     from ai_platform_generator.domain.values import RunId
     from ai_platform_generator.ports import (
         Clock,
@@ -361,35 +363,27 @@ class ClusterProvisioningService:
 
 
 def _existing_cluster(name: str, status: Any) -> Cluster:
-    """Wrap an already-running cluster in a typed entity (or stand-in)."""
-    try:
-        from ai_platform_generator.domain.aggregates import (
-            Cluster as _Cluster,  # type: ignore[attr-defined]
-        )
+    """Wrap an already-running cluster in the canonical :class:`Cluster` aggregate.
 
-        return _Cluster(name=name, runtime="external", nodes=tuple(status.nodes))
-    except (ImportError, AttributeError, TypeError):
-        from types import SimpleNamespace
+    The kubeconfig path is unknown to us when the cluster pre-existed —
+    we fall back to ``~/.kube/config`` (the conventional location) so
+    callers receive a fully-typed aggregate. Adapters that own the
+    kubeconfig directly (e.g. :class:`KindClusterRuntime`) construct
+    their own :class:`Cluster` with the correct path.
+    """
+    config = ClusterConfig(name=name, runtime="external")
+    return Cluster(
+        name=name,
+        config=config,
+        kubeconfig_path=Path.home() / ".kube" / "config",
+        nodes=tuple(getattr(status, "nodes", ()) or ()),
+        status=status,
+    )
 
-        return SimpleNamespace(  # type: ignore[return-value]
-            name=name,
-            runtime="external",
-            nodes=tuple(status.nodes),
-        )
 
-
-def _default_cluster_config(name: str) -> Any:
-    """Best-effort ``ClusterConfig``; falls back to ``SimpleNamespace``."""
-    try:
-        from ai_platform_generator.domain.aggregates import (
-            ClusterConfig,  # type: ignore[attr-defined]
-        )
-
-        return ClusterConfig(name=name)
-    except (ImportError, AttributeError, TypeError):
-        from types import SimpleNamespace
-
-        return SimpleNamespace(name=name)
+def _default_cluster_config(name: str) -> ClusterConfig:
+    """Return the default :class:`ClusterConfig` for ``name``."""
+    return ClusterConfig(name=name)
 
 
 def _bundle_gvk(bundle: ArtifactBundle) -> Any:
@@ -450,26 +444,22 @@ def _make_deployment(
     gvk: Any,
     instance_name: str,
 ) -> Deployment:
-    """Construct a :class:`Deployment` entity, or a stand-in if absent."""
-    try:
-        from ai_platform_generator.domain.aggregates import (
-            Deployment as _Dep,  # type: ignore[attr-defined]
-        )
+    """Construct a :class:`Deployment` entity for the given inputs.
 
-        return _Dep(
-            cluster_name=cluster_name,
-            crd_path=crd_path,
-            instance_path=instance_path,
-            gvk=gvk,
-            instance_name=instance_name,
-        )
-    except (ImportError, AttributeError, TypeError):
-        from types import SimpleNamespace
-
-        return SimpleNamespace(  # type: ignore[return-value]
-            cluster_name=cluster_name,
-            crd_path=crd_path,
-            instance_path=instance_path,
-            gvk=gvk,
-            instance_name=instance_name,
-        )
+    Note that :class:`Deployment` is a frozen value-object-ish entity —
+    ``crd_path`` / ``instance_path`` are not stored on it (the bundle
+    keeps those); the deployment carries the *outcome* fields the
+    verify path needs (``gvk``, ``instance_name``, the booleans).
+    """
+    # ``crd_path`` and ``instance_path`` are accepted for symmetry with
+    # the bundle's artefact set but the canonical aggregate stores only
+    # the verification-path-relevant fields.
+    del crd_path, instance_path
+    return Deployment(
+        id=uuid4(),
+        cluster_name=cluster_name,
+        gvk=gvk,
+        instance_name=instance_name,
+        crd_applied=True,
+        instance_applied=True,
+    )

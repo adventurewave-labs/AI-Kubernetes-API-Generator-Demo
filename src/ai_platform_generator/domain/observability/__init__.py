@@ -19,6 +19,11 @@ The module is deliberately framework-free: nothing here imports
 
 from __future__ import annotations
 
+from ai_platform_generator.domain.observability.dispatcher import (
+    EventDispatcher,
+    Predicate,
+    Subscription,
+)
 from ai_platform_generator.domain.observability.metrics import (
     MetricRecord,
     MetricsRecorder,
@@ -32,10 +37,13 @@ from ai_platform_generator.domain.observability.span_correlator import SpanCorre
 __version__ = "0.1.0"
 
 __all__ = [
+    "EventDispatcher",
     "MetricRecord",
     "MetricsRecorder",
+    "Predicate",
     "RedactionPolicy",
     "SecretRedactor",
     "SpanCorrelator",
+    "Subscription",
     "__version__",
 ]

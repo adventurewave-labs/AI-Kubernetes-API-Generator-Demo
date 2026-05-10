@@ -1,0 +1,87 @@
+{
+  "components": {
+    "schemas": {
+      "RedisCluster": {
+        "description": "Schema for the RedisCluster resource.",
+        "properties": {
+          "apiVersion": {
+            "description": "API version, e.g. cache.cnoe.io/v1alpha1",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Resource kind, e.g. RedisCluster",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Standard Kubernetes object metadata.",
+            "properties": {
+              "name": {
+                "description": "Name of the resource.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "spec": {
+            "description": "Specification of the desired RedisCluster.",
+            "properties": {
+              "memoryGiB": {
+                "description": "Memory budget per node, in GiB.",
+                "format": "int32",
+                "maximum": 1024,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "persistence": {
+                "description": "Whether AOF persistence is enabled.",
+                "type": "boolean"
+              },
+              "port": {
+                "description": "TCP port the Redis cluster listens on.",
+                "format": "int32",
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "memoryGiB",
+              "persistence",
+              "port"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "description": "Observed state of the RedisCluster.",
+            "properties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "apiVersion",
+          "kind",
+          "metadata",
+          "spec"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "A Redis cluster with configurable memory, port and persistence.",
+    "title": "RedisCluster API",
+    "version": "v1alpha1",
+    "x-kubernetes-gvk": {
+      "group": "cache.cnoe.io",
+      "kind": "RedisCluster",
+      "version": "v1alpha1"
+    },
+    "x-platform-generator-ir": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {}
+}

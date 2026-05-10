@@ -26,7 +26,7 @@ from ai_platform_generator.domain.aggregates.artifact_bundle import ArtifactBund
 from ai_platform_generator.domain.aggregates.codegen_request import CodegenRequest
 from ai_platform_generator.domain.aggregates.openapi_document import OpenAPIDocument
 from ai_platform_generator.domain.errors.domain_validation import DomainValidationError
-from ai_platform_generator.domain.values import Intent, RunId
+from ai_platform_generator.domain.values import GVK, Intent, RunId
 
 
 class InvalidGenerationRun(DomainValidationError):
@@ -98,19 +98,28 @@ _ALLOWED: dict[RunState, frozenset[RunState]] = {
 
 @dataclass(frozen=True, slots=True)
 class Deployment:
-    """Stub for the Cluster Provisioning context's ``Deployment`` entity.
+    """Cluster Provisioning context's ``Deployment`` entity.
 
-    The full deployment type will be defined in
-    ``domain/aggregates/deployment.py`` (or equivalent) when the cluster
-    provisioning context lands. For now we only need enough of the shape
-    for ``GenerationRun`` to track the deployment outcome.
+    Tracks the outcome of applying a CRD plus a sample instance against a
+    :class:`Cluster`. Carries enough information for the verify-stage of
+    the orchestrator saga to look up the deployed resource in-cluster
+    and persist a deployment summary.
+
+    Identity is :attr:`id`; ``cluster_name``, ``gvk``, and
+    ``instance_name`` together pinpoint the deployed resource. ``gvk``
+    and ``instance_name`` default to safe placeholders so that callers
+    that don't yet need the verify path (legacy attach-deployment tests)
+    can still construct one with just the identity fields.
     """
 
     id: UUID
     cluster_name: str
+    gvk: GVK | None = None
+    instance_name: str = ""
     crd_applied: bool = False
     instance_applied: bool = False
     verified_at: datetime | None = None
+    status_text: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.id, UUID):
@@ -121,6 +130,20 @@ class Deployment:
             raise InvalidGenerationRun(
                 "Deployment.cluster_name must be a non-blank str, got "
                 f"{self.cluster_name!r}"
+            )
+        if self.gvk is not None and not isinstance(self.gvk, GVK):
+            raise InvalidGenerationRun(
+                f"Deployment.gvk must be a GVK or None, got {type(self.gvk)!r}"
+            )
+        if not isinstance(self.instance_name, str):
+            raise InvalidGenerationRun(
+                "Deployment.instance_name must be a str, got "
+                f"{type(self.instance_name)!r}"
+            )
+        if self.status_text is not None and not isinstance(self.status_text, str):
+            raise InvalidGenerationRun(
+                "Deployment.status_text must be a str or None, got "
+                f"{type(self.status_text)!r}"
             )
 
 

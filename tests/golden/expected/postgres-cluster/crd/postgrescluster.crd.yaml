@@ -1,0 +1,58 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: postgresclusters.database.cnoe.io
+spec:
+  group: database.cnoe.io
+  names:
+    kind: PostgresCluster
+    listKind: PostgresClusterList
+    plural: postgresclusters
+    singular: postgrescluster
+    shortNames: []
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: Schema for the PostgresCluster resource.
+        properties:
+          spec:
+            description: Specification of the desired PostgresCluster.
+            properties:
+              backupSchedule:
+                description: Cron expression controlling the backup schedule.
+                pattern: ^[\\d\\*/, -]+$
+                type: string
+              replicas:
+                description: Number of PostgreSQL replicas in the cluster.
+                format: int32
+                maximum: 7
+                minimum: 1
+                type: integer
+              storageGiB:
+                description: Per-replica persistent volume size in GiB.
+                format: int32
+                maximum: 16384
+                minimum: 1
+                type: integer
+              tlsEnabled:
+                description: Whether TLS is enforced for client connections.
+                type: boolean
+            required:
+            - backupSchedule
+            - replicas
+            - storageGiB
+            - tlsEnabled
+            type: object
+          status:
+            description: Observed state of the PostgresCluster.
+            properties: {}
+            type: object
+        required:
+        - spec
+        type: object
+    subresources:
+      status: {}

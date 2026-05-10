@@ -1,0 +1,88 @@
+{
+  "components": {
+    "schemas": {
+      "MLPipeline": {
+        "description": "Schema for the MLPipeline resource.",
+        "properties": {
+          "apiVersion": {
+            "description": "API version, e.g. ai.platform.cnoe.io/v1alpha1",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Resource kind, e.g. MLPipeline",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Standard Kubernetes object metadata.",
+            "properties": {
+              "name": {
+                "description": "Name of the resource.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "spec": {
+            "description": "Specification of the desired MLPipeline.",
+            "properties": {
+              "gpuEnabled": {
+                "description": "Whether GPU-backed nodes are used.",
+                "type": "boolean"
+              },
+              "parallelism": {
+                "description": "Maximum number of stages to run concurrently.",
+                "format": "int32",
+                "maximum": 64,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "stages": {
+                "description": "Ordered list of pipeline stage names.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "x-kubernetes-list-type": "atomic"
+              }
+            },
+            "required": [
+              "gpuEnabled",
+              "parallelism",
+              "stages"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "description": "Observed state of the MLPipeline.",
+            "properties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "apiVersion",
+          "kind",
+          "metadata",
+          "spec"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "A multi-stage machine-learning pipeline with optional GPU acceleration.",
+    "title": "MLPipeline API",
+    "version": "v1alpha1",
+    "x-kubernetes-gvk": {
+      "group": "ai.platform.cnoe.io",
+      "kind": "MLPipeline",
+      "version": "v1alpha1"
+    },
+    "x-platform-generator-ir": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {}
+}

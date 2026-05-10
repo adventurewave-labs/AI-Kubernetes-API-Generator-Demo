@@ -1,0 +1,10 @@
+module {{ go_module_name }}
+
+go {{ go_version }}
+
+require (
+	k8s.io/api {{ kubernetes_api_version }}
+	k8s.io/apimachinery {{ kubernetes_api_version }}
+	k8s.io/client-go {{ kubernetes_api_version }}
+	sigs.k8s.io/controller-runtime {{ controller_runtime_version }}
+)

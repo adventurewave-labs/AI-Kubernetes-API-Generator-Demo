@@ -1,0 +1,93 @@
+{
+  "components": {
+    "schemas": {
+      "VectorDB": {
+        "description": "Schema for the VectorDB resource.",
+        "properties": {
+          "apiVersion": {
+            "description": "API version, e.g. ai.platform.cnoe.io/v1alpha1",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Resource kind, e.g. VectorDB",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Standard Kubernetes object metadata.",
+            "properties": {
+              "name": {
+                "description": "Name of the resource.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "spec": {
+            "description": "Specification of the desired VectorDB.",
+            "properties": {
+              "dimensions": {
+                "description": "Embedding vector dimensionality.",
+                "format": "int32",
+                "maximum": 65536,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "engineType": {
+                "description": "Backing vector engine.",
+                "enum": [
+                  "milvus",
+                  "pinecone",
+                  "qdrant",
+                  "weaviate"
+                ],
+                "type": "string"
+              },
+              "replicas": {
+                "description": "Number of replica pods.",
+                "format": "int32",
+                "maximum": 10,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "dimensions",
+              "engineType",
+              "replicas"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "description": "Observed state of the VectorDB.",
+            "properties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "apiVersion",
+          "kind",
+          "metadata",
+          "spec"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "A vector database used to store and query embeddings for AI workloads.",
+    "title": "VectorDB API",
+    "version": "v1alpha1",
+    "x-kubernetes-gvk": {
+      "group": "ai.platform.cnoe.io",
+      "kind": "VectorDB",
+      "version": "v1alpha1"
+    },
+    "x-platform-generator-ir": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {}
+}

@@ -1,0 +1,89 @@
+{
+  "components": {
+    "schemas": {
+      "CacheCluster": {
+        "description": "Schema for the CacheCluster resource.",
+        "properties": {
+          "apiVersion": {
+            "description": "API version, e.g. platform.cnoe.io/v1alpha1",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Resource kind, e.g. CacheCluster",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Standard Kubernetes object metadata.",
+            "properties": {
+              "name": {
+                "description": "Name of the resource.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "spec": {
+            "description": "Specification of the desired CacheCluster.",
+            "properties": {
+              "memory": {
+                "description": "Memory budget per node, e.g. '8Gi'.",
+                "type": "string"
+              },
+              "port": {
+                "description": "TCP port the cache listens on.",
+                "format": "int32",
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "size": {
+                "description": "T-shirt size, e.g. 'small', 'medium', 'large'.",
+                "enum": [
+                  "large",
+                  "medium",
+                  "small"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "memory",
+              "port",
+              "size"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "description": "Observed state of the CacheCluster.",
+            "properties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "apiVersion",
+          "kind",
+          "metadata",
+          "spec"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "A generic cache cluster with size, memory and port settings.",
+    "title": "CacheCluster API",
+    "version": "v1alpha1",
+    "x-kubernetes-gvk": {
+      "group": "platform.cnoe.io",
+      "kind": "CacheCluster",
+      "version": "v1alpha1"
+    },
+    "x-platform-generator-ir": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {}
+}

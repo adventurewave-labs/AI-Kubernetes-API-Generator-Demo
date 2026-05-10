@@ -1,22 +1,26 @@
 """``GenerationOrchestrator`` — the cross-cutting saga.
 
-Realises ``docs/ddd/06-application-services.md`` §4.
+Realises ``docs/ddd/06-application-services.md`` §4 and ADR-0009.
 
 The orchestrator is the *only* place in the application layer that
 sequences bounded contexts. It owns:
 
 * the per-stage bookkeeping decorator ``_stage`` (see §4.1);
-* the recovery rules from §4.2 (LLM rate-limit retry happens *inside*
-  :class:`IntentInterpretationService`; demo-mode swap is delegated to
-  ``_resolve_llm`` at construction time);
+* the recovery rules from §4.2 — LLM rate-limit retry happens *inside*
+  :class:`IntentInterpretationService`; the demo-mode swap is owned by
+  :meth:`_resolve_llm` (called once before the run starts);
 * the compensating actions from §4.3.
 
-Wave-3 dependency: ``DemoModeLlmAdapter`` does not yet exist. The
-orchestrator therefore raises :class:`LlmUnavailable` /
-:class:`LlmAuthenticationFailed` upward when ``allow_demo_mode`` is
-True; tests can assert that the orchestrator inspected
-``provider.is_available()`` and emitted ``StageFailed``. Once the demo
-adapter lands, ``_resolve_llm`` will swap providers for the retry.
+Demo-mode swap (per ADR-0009)
+-----------------------------
+When ``allow_demo_mode`` is enabled, the primary LLM is wrapped in a
+:class:`FallbackLlmProvider` so that a transient ``LlmUnavailable`` or
+``LlmAuthenticationFailed`` from the primary cannot fail the run — the
+fallback (a :class:`DemoModeLlmAdapter`) takes over and a
+``DemoModeEngaged`` event is published. Wrapping is performed *lazily*
+from :meth:`_resolve_llm` so callers that pre-wired their own
+:class:`FallbackLlmProvider` (the production composition root) are not
+double-wrapped.
 """
 
 from __future__ import annotations
@@ -41,8 +45,6 @@ from ai_platform_generator.domain.errors import (
     ArtifactWriteFailed,
     ClusterCreationTimedOut,
     DeploymentVerificationFailed,
-    LlmAuthenticationFailed,
-    LlmUnavailable,
     PlatformGeneratorError,
 )
 from ai_platform_generator.domain.events import (
@@ -275,28 +277,50 @@ class GenerationOrchestrator:
     # Recovery / demo-mode resolution
     # ------------------------------------------------------------------
     def _resolve_llm(
-        self, params: GenerateParams
+        self, params: GenerateParams | None = None
     ) -> LlmProvider:
-        """Resolve the LLM provider, swapping to demo mode if allowed.
+        """Resolve the LLM provider, wrapping in demo-mode fallback if allowed.
 
-        Wave-3 placeholder: when ``allow_demo_mode`` is True and the
-        primary provider is unavailable, the orchestrator swaps in
-        ``DemoModeLlmAdapter``. That adapter has not been implemented
-        yet; for now we propagate :class:`LlmUnavailable` /
-        :class:`LlmAuthenticationFailed` upward and let tests assert
-        the failure path.
+        Per ADR-0009:
+
+        1. If ``allow_demo_mode`` is False (orchestrator-level *or*
+           run-level), return the primary verbatim.
+        2. If the primary already exposes ``_last_mode_used`` it is
+           assumed to be a :class:`FallbackLlmProvider` already and is
+           returned verbatim — composition roots that pre-wired the
+           fallback should not be double-wrapped.
+        3. Otherwise, wrap the primary in a :class:`FallbackLlmProvider`
+           with :class:`DemoModeLlmAdapter` as the fallback so that any
+           ``LlmUnavailable`` / ``LlmAuthenticationFailed`` /
+           sustained ``LlmRateLimited`` from the primary engages
+           demo mode rather than failing the run.
         """
         primary = self._llm
-        try:
-            available = primary.is_available()
-        except (LlmUnavailable, LlmAuthenticationFailed):
-            available = False
-        if available or not params.allow_demo_mode:
+        # Run-level toggle wins over orchestrator-level when both are set.
+        run_allow = (
+            params.allow_demo_mode
+            if params is not None
+            else True
+        )
+        if not run_allow:
             return primary
-        # ``DemoModeLlmAdapter`` would live here once Wave 3 lands. Until
-        # then, return the primary so the caller hits the typed error
-        # path explicitly.
-        return primary
+
+        # Already a FallbackLlmProvider — leave alone.
+        if hasattr(primary, "_last_mode_used") or hasattr(primary, "last_mode_used"):
+            return primary
+
+        # Wrap. The import is lazy so the orchestrator stays importable
+        # in environments without the adapter package wired in (e.g.
+        # restricted unit-test imports).
+        from ai_platform_generator.adapters.llm import (
+            DemoModeLlmAdapter,
+            FallbackLlmProvider,
+        )
+
+        return FallbackLlmProvider(
+            primary=primary,
+            fallback=DemoModeLlmAdapter(),
+        )
 
     # ------------------------------------------------------------------
     # Compensation hooks (per §4.2 / §4.3)

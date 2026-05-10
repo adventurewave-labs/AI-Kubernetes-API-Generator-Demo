@@ -1,0 +1,58 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: vectordbs.ai.platform.cnoe.io
+spec:
+  group: ai.platform.cnoe.io
+  names:
+    kind: VectorDB
+    listKind: VectorDBList
+    plural: vectordbs
+    singular: vectordb
+    shortNames: []
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: Schema for the VectorDB resource.
+        properties:
+          spec:
+            description: Specification of the desired VectorDB.
+            properties:
+              dimensions:
+                description: Embedding vector dimensionality.
+                format: int32
+                maximum: 65536
+                minimum: 1
+                type: integer
+              engineType:
+                description: Backing vector engine.
+                enum:
+                - milvus
+                - pinecone
+                - qdrant
+                - weaviate
+                type: string
+              replicas:
+                description: Number of replica pods.
+                format: int32
+                maximum: 10
+                minimum: 1
+                type: integer
+            required:
+            - dimensions
+            - engineType
+            - replicas
+            type: object
+          status:
+            description: Observed state of the VectorDB.
+            properties: {}
+            type: object
+        required:
+        - spec
+        type: object
+    subresources:
+      status: {}

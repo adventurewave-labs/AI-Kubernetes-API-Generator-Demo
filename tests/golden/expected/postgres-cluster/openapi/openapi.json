@@ -1,0 +1,93 @@
+{
+  "components": {
+    "schemas": {
+      "PostgresCluster": {
+        "description": "Schema for the PostgresCluster resource.",
+        "properties": {
+          "apiVersion": {
+            "description": "API version, e.g. database.cnoe.io/v1alpha1",
+            "type": "string"
+          },
+          "kind": {
+            "description": "Resource kind, e.g. PostgresCluster",
+            "type": "string"
+          },
+          "metadata": {
+            "description": "Standard Kubernetes object metadata.",
+            "properties": {
+              "name": {
+                "description": "Name of the resource.",
+                "type": "string"
+              },
+              "namespace": {
+                "description": "Namespace of the resource.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "spec": {
+            "description": "Specification of the desired PostgresCluster.",
+            "properties": {
+              "backupSchedule": {
+                "description": "Cron expression controlling the backup schedule.",
+                "pattern": "^[\\\\d\\\\*/, -]+$",
+                "type": "string"
+              },
+              "replicas": {
+                "description": "Number of PostgreSQL replicas in the cluster.",
+                "format": "int32",
+                "maximum": 7,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "storageGiB": {
+                "description": "Per-replica persistent volume size in GiB.",
+                "format": "int32",
+                "maximum": 16384,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "tlsEnabled": {
+                "description": "Whether TLS is enforced for client connections.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "backupSchedule",
+              "replicas",
+              "storageGiB",
+              "tlsEnabled"
+            ],
+            "type": "object"
+          },
+          "status": {
+            "description": "Observed state of the PostgresCluster.",
+            "properties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "apiVersion",
+          "kind",
+          "metadata",
+          "spec"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "A managed PostgreSQL cluster with replication, TLS and scheduled backups.",
+    "title": "PostgresCluster API",
+    "version": "v1alpha1",
+    "x-kubernetes-gvk": {
+      "group": "database.cnoe.io",
+      "kind": "PostgresCluster",
+      "version": "v1alpha1"
+    },
+    "x-platform-generator-ir": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {}
+}
