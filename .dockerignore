@@ -1,0 +1,56 @@
+# VCS / local environment
+.git
+.gitignore
+.gitattributes
+.github
+
+# Python build & cache artefacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+.venv
+venv
+env
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.hypothesis
+.tox
+.coverage
+htmlcov
+
+# Build output
+build
+dist
+
+# Tests not needed in the runtime image (golden/expected IS needed at build
+# time and is COPYd explicitly in the Dockerfile).
+tests/e2e
+tests/integration
+tests/performance
+tests/utils
+tests/validation
+tests/fixtures
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Misc
+node_modules
+*.log
+*.swp
+*.swo
+.env
+.env.*
+!.env.example
+
+# Documentation analysis files (large, not part of the wheel)
+AGENT_ARCHITECTURE_ANALYSIS.md
+COMPREHENSIVE_PROJECT_ANALYSIS.md
+DEMO_EXECUTION_ANALYSIS.md

@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-integration test-golden test-e2e test-all coverage clean demo
+.PHONY: help install lint format test test-integration test-golden test-e2e test-all coverage clean demo wheel sdist release image sbom check-release
 
 help:
 	@echo "Available targets:"
@@ -13,6 +13,12 @@ help:
 	@echo "  coverage          Run unit tests with coverage report"
 	@echo "  clean             Remove caches and build artifacts"
 	@echo "  demo              Placeholder demo entry point"
+	@echo "  wheel             Build the wheel distribution"
+	@echo "  sdist             Build the source distribution"
+	@echo "  release           Build wheel + sdist and run twine check"
+	@echo "  image             Build a multi-arch container image (buildx)"
+	@echo "  sbom              Generate a CycloneDX SBOM (sbom.cdx.json)"
+	@echo "  check-release     Run pre-release guards (tag/version/changelog/clean)"
 
 install:
 	pip install -e ".[dev]"
@@ -48,3 +54,33 @@ clean:
 
 demo:
 	@echo "not yet implemented; see docs/ddd/08-implementation-roadmap.md"
+
+# ---------------------------------------------------------------------------
+# Release / packaging targets (Wave 6, Agent T).
+# See ADR-0019 (release process) and ADR-0020 (signing / SLSA).
+# ---------------------------------------------------------------------------
+
+wheel:
+	python -m build --wheel
+
+sdist:
+	python -m build --sdist
+
+release:
+	python -m build
+	python -m twine check dist/*
+
+image:
+	docker buildx build --platform linux/amd64,linux/arm64 \
+	    -t ai-platform-generator:dev --load .
+
+sbom:
+	@python -c "import cyclonedx_py" 2>/dev/null || { \
+	    echo "cyclonedx-bom is not installed."; \
+	    echo "Install with: pip install -e '.[release]'"; \
+	    exit 1; \
+	}
+	python -m cyclonedx_py environment -o sbom.cdx.json
+
+check-release:
+	python scripts/release/check_release.py

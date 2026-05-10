@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-platform-generator"
-version = "0.1.0"
+dynamic = ["version"]
 description = "AI Kubernetes API Generator - DDD/hexagonal implementation"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -12,17 +12,31 @@ requires-python = ">=3.10"
 authors = [
     { name = "AI Platform Generator contributors" },
 ]
-keywords = ["kubernetes", "ai", "code-generation", "ddd", "hexagonal"]
+keywords = [
+    "kubernetes",
+    "crd",
+    "ai",
+    "openapi",
+    "platform-engineering",
+    "operator",
+    "kubebuilder",
+    "llm",
+    "openrouter",
+]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Operating System :: POSIX",
+    "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Code Generators",
+    "Topic :: System :: Clustering",
+    "Topic :: System :: Software Distribution",
 ]
 dependencies = [
     "pydantic>=2.5",
@@ -35,6 +49,13 @@ dependencies = [
     "openai>=1.30",
 ]
 
+[project.urls]
+Homepage = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo"
+Repository = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo"
+Issues = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/issues"
+Documentation = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/tree/main/docs"
+Changelog = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
@@ -44,24 +65,40 @@ dev = [
     "hypothesis>=6.100",
     "respx>=0.21",
     "python-dotenv>=1.0",
+    "build>=1.2",
+    "twine>=5",
+    "cyclonedx-bom>=4.4",
 ]
 opentelemetry = [
     "opentelemetry-sdk>=1.25",
     "opentelemetry-exporter-otlp>=1.25",
 ]
 keyring = ["keyring>=24"]
+release = [
+    "build>=1.2",
+    "twine>=5",
+    "cyclonedx-bom>=4.4",
+]
 
 [project.scripts]
 ai-platform-generator = "ai_platform_generator.adapters.cli.main:main"
+
+[tool.hatch.version]
+path = "src/ai_platform_generator/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ai_platform_generator"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src/ai_platform_generator",
-    "README.md",
+    "src/**",
+    "tests/golden/expected/**",
+    "templates/**",
+    "prompts/**",
+    "docs/**",
     "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
     "pyproject.toml",
 ]
 

@@ -1,0 +1,291 @@
+name: Release
+
+# Triggered on version tags. The full pipeline:
+#   build-and-test  -> build-wheel -> build-image -> sign -> attest
+#                                                  \-> publish-pypi (stable only)
+#                                                  \-> github-release
+# See ADR-0019 (release process) and ADR-0020 (signing / SLSA) for rationale.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write       # github-release attaches assets
+  packages: write       # ghcr.io push
+  id-token: write       # cosign keyless + PyPI trusted publishing
+  attestations: write   # SLSA build provenance
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Build & test on the supported Python matrix. Skips e2e and integration
+  #    suites (those are gated separately by Agent S/U workflows).
+  # ---------------------------------------------------------------------------
+  build-and-test:
+    name: Build & test (py${{ matrix.python-version }})
+    if: "!contains(github.event.head_commit.message, '[skip-ci]')"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: make lint
+
+      - name: Test (unit + golden)
+        run: pytest tests/unit tests/golden
+
+  # ---------------------------------------------------------------------------
+  # 2. Build sdist + wheel; expose them as artifacts for downstream jobs.
+  # ---------------------------------------------------------------------------
+  build-wheel:
+    name: Build wheel + sdist
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: Validate distributions
+        run: python -m twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # 3. Build & push multi-arch container image to GHCR.
+  # ---------------------------------------------------------------------------
+  build-image:
+    name: Build & push image (multi-arch)
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+      tags: ${{ steps.meta.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
+
+      - name: Build & push
+        id: push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
+          sbom: true
+
+  # ---------------------------------------------------------------------------
+  # 4. Cosign-sign image (by digest) and each wheel/sdist (sign-blob).
+  #    Keyless via OIDC; no long-lived keys live in this repo.
+  # ---------------------------------------------------------------------------
+  sign:
+    name: Cosign sign artefacts
+    needs: [build-wheel, build-image]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sign container image
+        env:
+          DIGEST: ${{ needs.build-image.outputs.digest }}
+          TAGS: ${{ needs.build-image.outputs.tags }}
+        run: |
+          for tag in ${TAGS}; do
+            ref="${tag%@*}@${DIGEST}"
+            echo "Signing ${ref}"
+            cosign sign --yes "${ref}"
+          done
+
+      - name: Sign wheel + sdist
+        run: |
+          shopt -s nullglob
+          for f in dist/*.whl dist/*.tar.gz; do
+            echo "Signing ${f}"
+            cosign sign-blob --yes \
+              --output-signature "${f}.sig" \
+              --output-certificate "${f}.pem" \
+              "${f}"
+          done
+
+      - name: Upload signed distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-signed
+          path: dist/
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # 5. SLSA build-provenance attestations for both image and wheel.
+  # ---------------------------------------------------------------------------
+  attest:
+    name: SLSA provenance attestations
+    needs: [build-wheel, build-image]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Attest wheel + sdist provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: 'dist/*'
+
+      - name: Attest image provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.IMAGE_NAME }}
+          subject-digest: ${{ needs.build-image.outputs.digest }}
+          push-to-registry: true
+
+  # ---------------------------------------------------------------------------
+  # 6. Publish to PyPI via Trusted Publishing (no API tokens). Stable only.
+  # ---------------------------------------------------------------------------
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [sign, attest]
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ai-platform-generator
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Strip cosign artefacts before upload
+        run: rm -f dist/*.sig dist/*.pem
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # ---------------------------------------------------------------------------
+  # 7. GitHub Release with wheel/sdist/SBOM/sigs attached. Body = CHANGELOG.
+  # ---------------------------------------------------------------------------
+  github-release:
+    name: GitHub Release
+    needs: [sign, attest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download signed distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-signed
+          path: dist
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate SBOM
+        run: |
+          python -m pip install --upgrade pip cyclonedx-bom
+          python -m cyclonedx_py environment -o sbom.cdx.json || \
+            python -m cyclonedx_py requirements -o sbom.cdx.json requirements.txt
+
+      - name: Extract release notes for ${{ github.ref_name }}
+        id: notes
+        run: |
+          python scripts/release/check_release.py --extract-notes \
+            --tag "${GITHUB_REF_NAME}" --output release_notes.md || \
+            echo "See CHANGELOG.md for details." > release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/*.sig
+            dist/*.pem
+            sbom.cdx.json
+          fail_on_unmatched_files: false
