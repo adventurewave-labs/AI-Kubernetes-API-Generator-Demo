@@ -1,0 +1,10 @@
+Usage: ai-platform-generator runs [OPTIONS] COMMAND [ARGS]...
+
+  Inspect generation-run history.
+
+Options:
+  -h, --help  Show this message and exit.
+
+Commands:
+  list  List all recorded generation runs (chronological order).
+  show  Show the projection for a single run.

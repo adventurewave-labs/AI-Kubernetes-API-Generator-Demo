@@ -1,0 +1,6 @@
+Usage: ai-platform-generator cluster ensure [OPTIONS] [NAME]
+
+  Ensure ``name`` exists and is ready, creating it if necessary.
+
+Options:
+  -h, --help  Show this message and exit.

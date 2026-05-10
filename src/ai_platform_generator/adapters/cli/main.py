@@ -99,6 +99,10 @@ def _build_renderer(opts: dict[str, Any]) -> Any:
     Delegates to Agent Q's ``adapters.cli.rendering`` package when
     available; falls back to :class:`_PrintRenderer` if the package
     has not yet landed so ``--help`` and ``--version`` still work.
+
+    The CLI exposes ``--log-format`` with values ``tty / json / quiet``
+    while Q's package uses ``rich / json / quiet`` internally. We
+    translate here so the public CLI surface stays stable.
     """
     log_format = _resolve_log_format(opts)
     try:
@@ -106,8 +110,15 @@ def _build_renderer(opts: dict[str, Any]) -> Any:
     except ImportError:
         return _PrintRenderer(log_format=log_format)
 
+    # Translate the CLI-facing ``tty`` value into Q's ``rich``.
+    forwarded = dict(opts)
+    if log_format == "tty":
+        forwarded["log_format"] = "rich"
+    else:
+        forwarded["log_format"] = log_format
+
     try:
-        return _build(log_format=log_format, opts=opts)
+        return _build(forwarded)
     except Exception:
         # Defensive: if Q's package raises during construction, do not
         # take the entire CLI down — the user still needs to see help

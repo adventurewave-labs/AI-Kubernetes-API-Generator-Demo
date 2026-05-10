@@ -1,0 +1,33 @@
+Usage: ai-platform-generator [OPTIONS] COMMAND [ARGS]...
+
+  AI Kubernetes API Generator — natural language → CRDs.
+
+Options:
+  --version                       Show the version and exit.
+  --output-dir PATH               Where artefacts land (default
+                                  ./generated_specs/<kind>).
+  --no-deploy                     Skip cluster deployment.
+  --deploy                        Deploy to cluster after generation (default).
+  --no-fallback                   Disable Demo Mode fallback (CI-friendly).
+  --api-key TEXT                  LLM provider API key.
+  --model TEXT                    LLM model id.
+  --llm-provider [openrouter|openai|demo|fake]
+                                  Which LLM adapter to wire into the
+                                  orchestrator.  [default: openrouter]
+  --log-format [tty|json|quiet]   Output format. Auto-detected from TTY by
+                                  default.
+  --debug / --no-debug            Verbose logging.
+  --otel / --no-otel              Enable OpenTelemetry sink.
+  --cluster-name TEXT             Name of the kind cluster to ensure / deploy
+                                  into.  [default: ai-platform-demo]
+  --load-env / --no-load-env      Load secrets from .env in cwd.
+  -h, --help                      Show this message and exit.
+
+Commands:
+  build        Build artefacts from a JSON CodegenRequest file (skip the...
+  cluster      Manage Kubernetes clusters.
+  examples     List or show details of the demo scenarios.
+  generate     Generate a Kubernetes API from a natural-language description.
+  interactive  Interactive REPL — chain multiple generations with shared...
+  runs         Inspect generation-run history.
+  validate     Validate a CodegenRequest file without generating.

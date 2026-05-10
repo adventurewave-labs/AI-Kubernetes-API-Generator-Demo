@@ -1,0 +1,6 @@
+Usage: ai-platform-generator interactive [OPTIONS]
+
+  Interactive REPL — chain multiple generations with shared config.
+
+Options:
+  -h, --help  Show this message and exit.

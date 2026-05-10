@@ -1,0 +1,6 @@
+Usage: ai-platform-generator runs show [OPTIONS] RUN_ID
+
+  Show the projection for a single run.
+
+Options:
+  -h, --help  Show this message and exit.

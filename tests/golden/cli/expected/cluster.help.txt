@@ -1,0 +1,11 @@
+Usage: ai-platform-generator cluster [OPTIONS] COMMAND [ARGS]...
+
+  Manage Kubernetes clusters.
+
+Options:
+  -h, --help  Show this message and exit.
+
+Commands:
+  ensure    Ensure ``name`` exists and is ready, creating it if necessary.
+  status    Report whether ``name`` exists and is ready.
+  teardown  Delete ``name`` (idempotent on absence).

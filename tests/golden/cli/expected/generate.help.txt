@@ -1,0 +1,9 @@
+Usage: ai-platform-generator generate [OPTIONS] DESCRIPTION
+
+  Generate a Kubernetes API from a natural-language description.
+
+Options:
+  --output-format [json|yaml|summary]
+                                  How the post-run summary should be rendered.
+                                  [default: summary]
+  -h, --help                      Show this message and exit.

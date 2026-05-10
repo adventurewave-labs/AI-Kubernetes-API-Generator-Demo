@@ -1,0 +1,7 @@
+Usage: ai-platform-generator build [OPTIONS] REQUEST_FILE
+
+  Build artefacts from a JSON CodegenRequest file (skip the LLM step).
+
+Options:
+  --output-dir PATH  Override the output directory recorded in the request.
+  -h, --help         Show this message and exit.

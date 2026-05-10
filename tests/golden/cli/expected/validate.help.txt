@@ -1,0 +1,6 @@
+Usage: ai-platform-generator validate [OPTIONS] REQUEST_FILE
+
+  Validate a CodegenRequest file without generating.
+
+Options:
+  -h, --help  Show this message and exit.

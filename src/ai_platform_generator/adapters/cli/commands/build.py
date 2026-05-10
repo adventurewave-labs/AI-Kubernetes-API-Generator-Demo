@@ -12,6 +12,7 @@ request is provided verbatim.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -47,19 +48,15 @@ def build(
     renderer = ctx.obj["renderer"]
 
     if hasattr(renderer, "begin"):
-        try:
+        with contextlib.suppress(Exception):
             renderer.begin()
-        except Exception:
-            pass
 
     try:
         request = _load_codegen_request(request_file)
     except Exception as exc:
         if hasattr(renderer, "error"):
-            try:
+            with contextlib.suppress(Exception):
                 renderer.error(exc)
-            except Exception:
-                pass
         sys.exit(code_for(exc) or EXIT_GENERIC)
 
     # Apply --output-dir override if given.
@@ -90,17 +87,13 @@ def build(
         sys.exit(EXIT_INTERRUPTED)
     except Exception as exc:
         if hasattr(renderer, "error"):
-            try:
+            with contextlib.suppress(Exception):
                 renderer.error(exc)
-            except Exception:
-                pass
         sys.exit(code_for(exc) or EXIT_GENERIC)
 
     if hasattr(renderer, "end"):
-        try:
+        with contextlib.suppress(Exception):
             renderer.end(summary)
-        except Exception:
-            pass
     sys.exit(0)
 
 
@@ -110,13 +103,31 @@ def build(
 
 
 def _load_codegen_request(path: Path) -> Any:
-    """Read ``path`` and reconstruct a :class:`CodegenRequest`."""
+    """Read ``path`` and reconstruct a :class:`CodegenRequest`.
+
+    Malformed inputs are normalised to :class:`DomainValidationError`
+    so the CLI surfaces exit code 11 rather than the catch-all 1.
+    """
     from ai_platform_generator.domain.aggregates.codegen_request import (
         CodegenRequest,
     )
+    from ai_platform_generator.domain.errors import DomainValidationError
 
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return CodegenRequest.from_dict(data)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise DomainValidationError(
+            f"request file is not valid JSON: {exc.msg}"
+        ) from exc
+
+    try:
+        return CodegenRequest.from_dict(data)
+    except DomainValidationError:
+        raise
+    except (KeyError, ValueError, TypeError) as exc:
+        raise DomainValidationError(
+            f"request file does not satisfy the CodegenRequest schema: {exc}"
+        ) from exc
 
 
 def _build_app_config(opts: dict[str, Any]) -> Any:
@@ -160,7 +171,6 @@ def _run_model_and_generate(
     keeping but without re-emitting the saga events. Errors raise
     typed :class:`PlatformGeneratorError`s and propagate up.
     """
-    from datetime import datetime, timezone
     from pathlib import Path as _Path
 
     from ai_platform_generator.application.orchestrator.summary import (
@@ -186,10 +196,7 @@ def _run_model_and_generate(
     if deploy:
         orchestrator._provision.check_prerequisites(run_id=run_id)
         cluster = orchestrator._provision.ensure(
-            getattr(orchestrator, "_default_cluster_name", "ai-platform-demo")
-            if not hasattr(orchestrator, "_default_cluster_name")
-            else orchestrator._default_cluster_name,
-            run_id=run_id,
+            "ai-platform-demo", run_id=run_id
         )
         deployment = orchestrator._provision.deploy(bundle, cluster, run_id=run_id)
         orchestrator._provision.verify(deployment, cluster, run_id=run_id)

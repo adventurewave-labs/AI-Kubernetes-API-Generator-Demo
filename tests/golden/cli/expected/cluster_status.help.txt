@@ -1,0 +1,6 @@
+Usage: ai-platform-generator cluster status [OPTIONS] [NAME]
+
+  Report whether ``name`` exists and is ready.
+
+Options:
+  -h, --help  Show this message and exit.

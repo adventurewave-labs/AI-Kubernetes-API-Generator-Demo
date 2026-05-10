@@ -1,0 +1,6 @@
+Usage: ai-platform-generator cluster teardown [OPTIONS] [NAME]
+
+  Delete ``name`` (idempotent on absence).
+
+Options:
+  -h, --help  Show this message and exit.

@@ -1,0 +1,9 @@
+Usage: ai-platform-generator examples [OPTIONS]
+
+  List or show details of the demo scenarios.
+
+Options:
+  --scenario [postgres-cluster|redis-cluster|vector-db|notebook|database-backup|cache-cluster|monitoring-service|ml-pipeline]
+                                  Show details of a single scenario instead of
+                                  the full list.
+  -h, --help                      Show this message and exit.

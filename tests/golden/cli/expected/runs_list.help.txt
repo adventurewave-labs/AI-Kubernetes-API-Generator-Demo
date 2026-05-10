@@ -1,0 +1,6 @@
+Usage: ai-platform-generator runs list [OPTIONS]
+
+  List all recorded generation runs (chronological order).
+
+Options:
+  -h, --help  Show this message and exit.

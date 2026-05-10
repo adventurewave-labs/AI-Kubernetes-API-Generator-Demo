@@ -133,12 +133,17 @@ def _subscribe_renderer(orchestrator: GenerationOrchestrator, renderer: Any) -> 
     ``_events`` :class:`TelemetrySink`. We wrap that sink in an adapter
     that *also* forwards each event to ``renderer.event`` so progress
     panels / JSON lines fire as the saga advances.
+
+    Test doubles expose their sink as ``sink`` (rather than ``_events``);
+    we honour either.
     """
+    import contextlib
+
     sink = getattr(orchestrator, "_events", None)
     if sink is None or not hasattr(sink, "emit"):
+        sink = getattr(orchestrator, "sink", None)
+    if sink is None or not hasattr(sink, "emit"):
         return
-
-    import contextlib
 
     original_emit = sink.emit
 
