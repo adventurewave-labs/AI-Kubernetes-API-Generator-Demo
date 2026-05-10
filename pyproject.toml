@@ -43,7 +43,13 @@ dev = [
     "ruff>=0.5",
     "hypothesis>=6.100",
     "respx>=0.21",
+    "python-dotenv>=1.0",
 ]
+opentelemetry = [
+    "opentelemetry-sdk>=1.25",
+    "opentelemetry-exporter-otlp>=1.25",
+]
+keyring = ["keyring>=24"]
 
 [project.scripts]
 ai-platform-generator = "ai_platform_generator.adapters.cli.main:main"
