@@ -38,9 +38,9 @@ from .commands import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
-    from ai_platform_generator.domain.events import DomainEvent
     from ai_platform_generator.application.orchestrator import GenerationSummary
     from ai_platform_generator.domain.errors import PlatformGeneratorError
+    from ai_platform_generator.domain.events import DomainEvent
 
 
 # ---------------------------------------------------------------------------

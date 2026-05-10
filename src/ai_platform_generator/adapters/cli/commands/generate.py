@@ -138,6 +138,8 @@ def _subscribe_renderer(orchestrator: GenerationOrchestrator, renderer: Any) -> 
     if sink is None or not hasattr(sink, "emit"):
         return
 
+    import contextlib
+
     original_emit = sink.emit
 
     def _tee_emit(event: Any) -> None:
@@ -145,11 +147,9 @@ def _subscribe_renderer(orchestrator: GenerationOrchestrator, renderer: Any) -> 
             original_emit(event)
         finally:
             if hasattr(renderer, "event"):
-                try:
+                # Never let a rendering failure stop the run.
+                with contextlib.suppress(Exception):
                     renderer.event(event)
-                except Exception:
-                    # Never let a rendering failure stop the run.
-                    pass
 
     sink.emit = _tee_emit  # type: ignore[method-assign]
 
