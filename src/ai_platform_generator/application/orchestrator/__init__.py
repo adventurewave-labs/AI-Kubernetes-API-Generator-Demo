@@ -1,4 +1,4 @@
-"""AI Kubernetes API Generator package root."""
+"""Application orchestrators."""
 
 __version__ = "0.1.0"
 

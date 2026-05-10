@@ -1,0 +1,148 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-platform-generator"
+version = "0.1.0"
+description = "AI Kubernetes API Generator - DDD/hexagonal implementation"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [
+    { name = "AI Platform Generator contributors" },
+]
+keywords = ["kubernetes", "ai", "code-generation", "ddd", "hexagonal"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Code Generators",
+]
+dependencies = [
+    "pydantic>=2.5",
+    "click>=8.1",
+    "rich>=13.7",
+    "structlog>=24.1",
+    "Jinja2>=3.1",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+    "openai>=1.30",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "mypy>=1.10",
+    "ruff>=0.5",
+    "hypothesis>=6.100",
+    "respx>=0.21",
+]
+
+[project.scripts]
+ai-platform-generator = "ai_platform_generator.adapters.cli.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_platform_generator"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/ai_platform_generator",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+extend-exclude = [
+    # Prototype files retained for reference; replaced in phases 3-6.
+    "src/agent.py",
+    "src/simple_agent.py",
+    "src/ai_scaffolding_agent.py",
+    "src/ai_platform_generator/agent.py",
+    "src/ai_platform_generator/cli.py",
+    "src/ai_platform_generator/cluster_manager.py",
+    "src/ai_platform_generator/codegen.py",
+    # Leftover prototype tests (see docs/ddd/08-implementation-roadmap.md).
+    "tests/test_agent.py",
+    "tests/test_ai_scaffolding_agent.py",
+    "tests/test_cli.py",
+    "tests/test_codegen.py",
+    "tests/conftest.py.bak",
+    "tests/unit/agent",
+    "tests/unit/codegen",
+    "tests/integration/test_openapi_codegen.py",
+    "tests/e2e/test_complete_workflow.py",
+    "tests/performance",
+    "tests/utils",
+    "tests/validation",
+    "tests/fixtures/mocks",
+    "tests/fixtures/test_data",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+namespace_packages = true
+explicit_package_bases = true
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/integration", "tests/golden", "tests/e2e"]
+addopts = "-ra --strict-markers"
+# Leftover prototype tests reference modules that no longer exist; they will be
+# replaced in phases 3-6 (see docs/ddd/08-implementation-roadmap.md). Until then
+# they are excluded from collection.
+norecursedirs = [
+    ".git",
+    ".venv",
+    "build",
+    "dist",
+    "tests/unit/agent",
+    "tests/unit/codegen",
+    "tests/performance",
+    "tests/utils",
+    "tests/validation",
+    "tests/fixtures/mocks",
+    "tests/fixtures/test_data",
+]
+markers = [
+    "integration: integration tests against real or simulated adapters",
+    "e2e: end-to-end workflow tests",
+    "golden: golden-file regression tests",
+    "slow: tests that take more than a few seconds",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["ai_platform_generator"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
