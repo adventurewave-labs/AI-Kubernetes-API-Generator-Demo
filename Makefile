@@ -1,4 +1,4 @@
-.PHONY: help install lint format test test-integration test-golden test-e2e test-all coverage clean demo wheel sdist release image sbom check-release
+.PHONY: help install lint format test test-integration test-golden test-e2e test-all coverage clean demo wheel sdist release image sbom check-release e2e e2e-offline demo-offline shellcheck
 
 help:
 	@echo "Available targets:"
@@ -84,3 +84,25 @@ sbom:
 
 check-release:
 	python scripts/release/check_release.py
+
+# ---------------------------------------------------------------------------
+# End-to-end + demo orchestration (Wave 6, Agent S).
+# `e2e` requires a real kind + docker stack; `e2e-offline` is the CI-friendly
+# subset that exercises run.sh in DEMO MODE without touching a cluster.
+# ---------------------------------------------------------------------------
+
+e2e: ## Run end-to-end tests (requires kind + docker)
+	pytest tests/e2e -m e2e -v
+
+e2e-offline:
+	OFFLINE=1 pytest tests/e2e/test_demo_flow.py::test_run_sh_demo_offline_mode -m e2e -v
+
+demo-offline:
+	OFFLINE=1 ./run.sh demo --no-deploy
+
+shellcheck:
+	@if command -v shellcheck >/dev/null 2>&1; then \
+	    shellcheck run.sh; \
+	else \
+	    echo "shellcheck not installed; skipping (install: https://www.shellcheck.net/)"; \
+	fi

@@ -28,6 +28,31 @@ RUN_SH = REPO_ROOT / "run.sh"
 CLUSTER_NAME = "ai-platform-demo"
 
 
+# Prototype workflow file retained for reference but not yet ported to the
+# new architecture (see ``docs/ddd/08-implementation-roadmap.md``). It
+# imports a top-level ``main`` module that no longer exists, so we omit it
+# from collection here. Once the prototype is removed this list can shrink.
+collect_ignore = ["test_complete_workflow.py"]
+
+
+# ---------------------------------------------------------------------------
+# Marker registration
+# ---------------------------------------------------------------------------
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Register e2e-suite-local markers so ``--strict-markers`` is happy.
+
+    The repository's ``pyproject.toml`` already registers ``e2e``; the
+    ``e2e_no_cluster`` opt-out is a suite-private marker we register
+    here rather than in :mod:`pyproject` (Agent T's territory).
+    """
+    config.addinivalue_line(
+        "markers",
+        "e2e_no_cluster: e2e test that does not require kind+docker",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Marker / skip plumbing
 # ---------------------------------------------------------------------------
