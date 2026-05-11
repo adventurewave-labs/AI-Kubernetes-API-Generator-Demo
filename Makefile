@@ -101,8 +101,4 @@ demo-offline:
 	OFFLINE=1 ./run.sh demo --no-deploy
 
 shellcheck:
-	@if command -v shellcheck >/dev/null 2>&1; then \
-	    shellcheck run.sh; \
-	else \
-	    echo "shellcheck not installed; skipping (install: https://www.shellcheck.net/)"; \
-	fi
+	@./scripts/shellcheck-runsh.sh

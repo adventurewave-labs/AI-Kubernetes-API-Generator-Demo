@@ -2,27 +2,36 @@
 # =============================================================================
 # AI Kubernetes API Generator — canonical demo entrypoint
 # =============================================================================
-# Usage: ./run.sh [demo|install|check|teardown|help] [--quiet] [--debug]
-#                 [--no-deploy] [--no-install-tools]
+# Usage: ./run.sh [demo|install-tools|check|cluster-up|cluster-down|help]
+#                 [--quiet] [--debug] [--no-deploy] [--no-install-tools]
+#                 [--description "..."]
 #
 # Sub-commands
-#   demo       Full happy path: prerequisite check → cluster ensure →
-#              generate → verify → summary. (default)
-#   install    Install kubectl + kind into ~/.local/bin if absent.
-#   check      Prerequisite check only; non-zero exit if anything is missing.
-#   teardown   Delete the kind cluster created by `demo`.
-#   help       Print this usage block.
+#   demo          Full happy path: prerequisite check → cluster ensure →
+#                 generate → verify → summary. (default)
+#   install-tools Install kubectl + kind into ~/.local/bin if absent.
+#                 (alias: `install`)
+#   check         Prerequisite check only; non-zero exit if missing.
+#   cluster-up    Ensure the kind demo cluster exists.
+#   cluster-down  Delete the kind cluster created by `demo`.
+#                 (alias: `teardown`)
+#   help          Print this usage block.
 #
 # Flags
 #   --quiet            Forward LOG_FORMAT=json to the CLI (machine-readable).
 #   --debug            Forward --debug to the CLI (verbose tracing).
 #   --no-deploy        Skip cluster ensure/deploy; pass --no-deploy to the CLI.
-#   --no-install-tools Do not download kubectl/kind on `demo`/`install`.
+#   --no-install-tools Do not download kubectl/kind on `demo`/`install-tools`.
+#   --description ...  Override the default demo prompt.
 #
 # Environment
 #   OPENROUTER_API_KEY   Live LLM provider key. If unset the user is offered
 #                        DEMO MODE (--llm-provider=demo).
-#   OFFLINE=1            Force --llm-provider=demo and skip OpenRouter.
+#   OFFLINE=1            Force --llm-provider=demo and skip OpenRouter,
+#                        docker, kind. Implies tools are not auto-installed.
+#   OUTPUT_DIR           Override the artefact output directory
+#                        (default: ./generated_specs/postgrescluster).
+#   CI=true              Pass `--log-format json` to the CLI automatically.
 #   LOG_FORMAT           Already-set rendering format (tty|json|quiet).
 #
 # Exit codes
@@ -30,10 +39,12 @@
 #   (`docs/ddd/bounded-contexts/05-user-interaction.md` §7):
 #     0   ok            10  intent      11  domain-validation
 #     12  artifact      13  persistence 14  cluster
-#     15  configuration 130 interrupted
+#     15  configuration (incl. missing prerequisite tools)
+#     130 interrupted
 # =============================================================================
 
 set -Eeuo pipefail
+IFS=$'\n\t'
 
 # ----------------------------------------------------------------------------
 # Globals & constants
@@ -43,10 +54,18 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT
 readonly VENV_DIR="${REPO_ROOT}/.venv"
 readonly DEFAULT_CLUSTER_NAME="ai-platform-demo"
-readonly DEFAULT_OUTPUT_DIR="${REPO_ROOT}/generated_specs/postgrescluster"
+# OUTPUT_DIR may be set in the environment to redirect artefacts (e.g. tests).
+OUTPUT_DIR_DEFAULT="${REPO_ROOT}/generated_specs/postgrescluster"
+readonly OUTPUT_DIR="${OUTPUT_DIR:-${OUTPUT_DIR_DEFAULT}}"
 readonly DEFAULT_INTENT="PostgreSQL cluster API with replicas (int 1-7), tlsEnabled (bool), and backupSchedule (cron string)"
 readonly KIND_VERSION="${KIND_VERSION:-v0.23.0}"
 readonly LOCAL_BIN="${HOME}/.local/bin"
+# Install hint URLs surfaced in remediation messages — fixed strings make
+# them easy to grep for in tests and CI logs.
+readonly INSTALL_HINT_KIND_URL="https://kind.sigs.k8s.io/docs/user/quick-start/#installation"
+readonly INSTALL_HINT_KUBECTL_URL="https://kubernetes.io/docs/tasks/tools/#kubectl"
+readonly INSTALL_HINT_DOCKER_URL="https://docs.docker.com/get-docker/"
+readonly INSTALL_HINT_PYTHON_URL="https://www.python.org/downloads/"
 
 # Stable colour codes — auto-disabled when stdout is not a TTY.
 if [[ -t 1 ]]; then
@@ -69,6 +88,7 @@ FLAG_QUIET=0
 FLAG_DEBUG=0
 FLAG_NO_DEPLOY=0
 FLAG_NO_INSTALL_TOOLS=0
+FLAG_DESCRIPTION=""
 
 # Step state for the error trap.
 CURRENT_STEP=""
@@ -141,16 +161,20 @@ print_remediation() {
     case "${step}" in
         require_python|ensure_venv)
             log_warn "remediation: install Python 3.10+ and python3-venv, then re-run."
+            log_warn "  install hint: ${INSTALL_HINT_PYTHON_URL}"
             ;;
         require_kubectl_kind|require_or_install_tools)
-            log_warn "remediation: re-run with default flags (install) or install kind/kubectl manually."
-            log_warn "  see https://kind.sigs.k8s.io/docs/user/quick-start/#installation"
+            log_warn "remediation: re-run without --no-install-tools, or install kind/kubectl manually."
+            log_warn "  install hint: ${INSTALL_HINT_KIND_URL}"
+            log_warn "  install hint: ${INSTALL_HINT_KUBECTL_URL}"
             ;;
         require_docker)
             log_warn "remediation: start Docker Desktop or 'sudo systemctl start docker'."
+            log_warn "  install hint: ${INSTALL_HINT_DOCKER_URL}"
             ;;
         ensure_kind_cluster)
             log_warn "remediation: 'kind delete cluster --name ${DEFAULT_CLUSTER_NAME}' then re-run."
+            log_warn "  install hint: ${INSTALL_HINT_KIND_URL}"
             ;;
         run_generation)
             log_warn "remediation: re-run with --debug to capture full traceback."
@@ -171,16 +195,21 @@ print_remediation() {
 # ----------------------------------------------------------------------------
 
 usage() {
-    sed -n '2,32p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    sed -n '2,44p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
 }
 
 parse_args() {
     local positional=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            demo|install|check|teardown|help)
+            demo|install|install-tools|check|teardown|cluster-up|cluster-down|help)
                 if [[ -z "${positional}" ]]; then
-                    positional="$1"
+                    # Normalise aliases to their canonical name.
+                    case "$1" in
+                        install)      positional="install-tools" ;;
+                        teardown)     positional="cluster-down"  ;;
+                        *)            positional="$1"             ;;
+                    esac
                 else
                     log_err "unexpected extra sub-command: $1"
                     exit 2
@@ -201,6 +230,17 @@ parse_args() {
             --no-install-tools)
                 FLAG_NO_INSTALL_TOOLS=1
                 ;;
+            --description)
+                shift
+                if [[ $# -eq 0 ]]; then
+                    log_err "--description requires a value"
+                    exit 2
+                fi
+                FLAG_DESCRIPTION="$1"
+                ;;
+            --description=*)
+                FLAG_DESCRIPTION="${1#--description=}"
+                ;;
             *)
                 log_err "unknown argument: $1"
                 usage
@@ -210,6 +250,15 @@ parse_args() {
         shift
     done
     SUBCOMMAND="${positional:-demo}"
+    # OFFLINE implies "no auto-install" — respect ADR-0020 (no network in
+    # offline mode) by refusing to download tooling.
+    if [[ "${OFFLINE:-0}" == "1" ]]; then
+        FLAG_NO_INSTALL_TOOLS=1
+    fi
+    # CI=true → machine-readable JSON logs from the CLI.
+    if [[ "${CI:-}" == "true" ]]; then
+        FLAG_QUIET=1
+    fi
 }
 
 # ----------------------------------------------------------------------------
@@ -234,14 +283,15 @@ detect_arch() {
 require_python() {
     step_start "require_python"
     if ! command -v python3 >/dev/null 2>&1; then
-        log_err "python3 not on PATH"
-        return 1
+        log_err "python3 not on PATH (install hint: ${INSTALL_HINT_PYTHON_URL})"
+        return 15
     fi
     if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'; then
         local ver
         ver="$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
         log_err "Python ${ver} detected; >= 3.10 required."
-        return 1
+        log_err "  install hint: ${INSTALL_HINT_PYTHON_URL}"
+        return 15
     fi
     step_ok
 }
@@ -269,8 +319,10 @@ require_or_install_tools() {
         command -v kubectl >/dev/null 2>&1 || missing+=("kubectl")
         command -v kind    >/dev/null 2>&1 || missing+=("kind")
         if [[ ${#missing[@]} -gt 0 ]]; then
-            log_err "missing tools (and --no-install-tools set): ${missing[*]}"
-            return 1
+            log_err "missing tools (and --no-install-tools / OFFLINE set): ${missing[*]}"
+            log_err "  install hint: ${INSTALL_HINT_KIND_URL}"
+            log_err "  install hint: ${INSTALL_HINT_KUBECTL_URL}"
+            return 15
         fi
         step_ok
         return 0
@@ -307,7 +359,7 @@ install_kubectl_if_missing() {
         if [[ -n "${actual}" && "${actual}" != "${expected}" ]]; then
             rm -f "${LOCAL_BIN}/kubectl"
             log_err "kubectl checksum mismatch: expected ${expected}, got ${actual}"
-            return 1
+            return 15
         fi
         rm -f "${LOCAL_BIN}/kubectl.sha256"
     fi
@@ -341,12 +393,13 @@ ensure_local_bin_on_path() {
 require_docker() {
     step_start "require_docker"
     if ! command -v docker >/dev/null 2>&1; then
-        log_err "docker not on PATH"
-        return 1
+        log_err "docker not on PATH (install hint: ${INSTALL_HINT_DOCKER_URL})"
+        return 15
     fi
     if ! docker info >/dev/null 2>&1; then
         log_err "docker daemon not reachable. Start Docker Desktop or 'sudo systemctl start docker'."
-        return 1
+        log_err "  install hint: ${INSTALL_HINT_DOCKER_URL}"
+        return 15
     fi
     step_ok
 }
@@ -432,8 +485,9 @@ teardown_cluster() {
 
 run_generation() {
     step_start "run_generation"
+    local intent="${FLAG_DESCRIPTION:-${DEFAULT_INTENT}}"
     local -a cli_args=()
-    cli_args+=("--output-dir" "${DEFAULT_OUTPUT_DIR}")
+    cli_args+=("--output-dir" "${OUTPUT_DIR}")
     if [[ -n "${LLM_PROVIDER_FLAG}" ]]; then
         cli_args+=("${LLM_PROVIDER_FLAG}")
     fi
@@ -447,9 +501,9 @@ run_generation() {
         cli_args+=("--no-deploy")
     fi
     cli_args+=("--cluster-name" "${DEFAULT_CLUSTER_NAME}")
-    cli_args+=("generate" "${DEFAULT_INTENT}")
+    cli_args+=("generate" "${intent}")
 
-    log_info "invoking ai_platform_generator CLI"
+    log_info "invoking ai_platform_generator CLI (intent: ${intent})"
     set +e
     python -m ai_platform_generator.adapters.cli.main "${cli_args[@]}"
     local rc=$?
@@ -487,22 +541,25 @@ verify_resources() {
 
 render_summary() {
     step_start "render_summary"
-    local manifest="${DEFAULT_OUTPUT_DIR}/manifest.json"
+    local manifest="${OUTPUT_DIR}/manifest.json"
     log_ok "demo complete"
-    printf "\n"
-    printf "%s== AI Kubernetes API Generator ==%s\n" "${C_GREEN}" "${C_RESET}"
-    printf "  output directory : %s\n" "${DEFAULT_OUTPUT_DIR}"
+    # Stdout: artefact paths only (machine-parseable). Status / context goes
+    # to stderr via log_*.
+    printf '%s\n' "${OUTPUT_DIR}"
     if [[ -f "${manifest}" ]]; then
-        printf "  manifest         : %s\n" "${manifest}"
+        printf '%s\n' "${manifest}"
+    fi
+    log_info "== AI Kubernetes API Generator =="
+    log_info "  output directory : ${OUTPUT_DIR}"
+    if [[ -f "${manifest}" ]]; then
+        log_info "  manifest         : ${manifest}"
     fi
     if [[ "${FLAG_NO_DEPLOY}" -eq 0 ]]; then
-        printf "  cluster context  : kind-%s\n" "${DEFAULT_CLUSTER_NAME}"
-        printf "  next:  kubectl --context kind-%s get postgresclusters.database.cnoe.io\n" \
-            "${DEFAULT_CLUSTER_NAME}"
+        log_info "  cluster context  : kind-${DEFAULT_CLUSTER_NAME}"
+        log_info "  next:  kubectl --context kind-${DEFAULT_CLUSTER_NAME} get postgresclusters.database.cnoe.io"
     else
-        printf "  cluster          : skipped (--no-deploy)\n"
+        log_info "  cluster          : skipped (--no-deploy)"
     fi
-    printf "\n"
     step_ok
 }
 
@@ -513,22 +570,43 @@ render_summary() {
 cmd_check() {
     require_python
     require_or_install_tools
-    require_docker
+    if [[ "${OFFLINE:-0}" != "1" ]]; then
+        require_docker
+    fi
     log_ok "all prerequisites present"
 }
 
-cmd_install() {
+cmd_install_tools() {
     require_python
+    if [[ "${OFFLINE:-0}" == "1" ]]; then
+        log_err "OFFLINE=1: refusing to download tooling (ADR-0020)"
+        log_err "  install hint: ${INSTALL_HINT_KIND_URL}"
+        log_err "  install hint: ${INSTALL_HINT_KUBECTL_URL}"
+        exit 15
+    fi
     install_kubectl_if_missing
     install_kind_if_missing
     log_ok "tooling installation complete"
 }
 
+cmd_cluster_up() {
+    require_or_install_tools
+    require_docker
+    ensure_kind_cluster
+    log_ok "cluster '${DEFAULT_CLUSTER_NAME}' is up"
+}
+
+cmd_cluster_down() {
+    teardown_cluster
+}
+
 cmd_demo() {
     require_python
     ensure_venv
-    require_or_install_tools
+    # In OFFLINE mode we generate locally only; kind/docker are not needed
+    # if --no-deploy is set, and OFFLINE forces FLAG_NO_INSTALL_TOOLS=1.
     if [[ "${FLAG_NO_DEPLOY}" -eq 0 ]]; then
+        require_or_install_tools
         require_docker
     fi
     verify_secret_or_offer_demo_mode
@@ -540,10 +618,6 @@ cmd_demo() {
     render_summary
 }
 
-cmd_teardown() {
-    teardown_cluster
-}
-
 # ----------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------
@@ -551,11 +625,12 @@ cmd_teardown() {
 main() {
     parse_args "$@"
     case "${SUBCOMMAND}" in
-        help)     usage ;;
-        check)    cmd_check ;;
-        install)  cmd_install ;;
-        teardown) cmd_teardown ;;
-        demo)     cmd_demo ;;
+        help)           usage ;;
+        check)          cmd_check ;;
+        install-tools)  cmd_install_tools ;;
+        cluster-up)     cmd_cluster_up ;;
+        cluster-down)   cmd_cluster_down ;;
+        demo)           cmd_demo ;;
         *)
             log_err "unhandled sub-command: ${SUBCOMMAND}"
             usage
