@@ -56,7 +56,7 @@ def _run(
     full_env: dict[str, str] = dict(os.environ) if inherit_env else {}
     if env is not None:
         full_env.update(env)
-    return subprocess.run(  # noqa: S603 — argv is constructed from controlled values
+    return subprocess.run(
         [_BASH, str(script), *args],
         env=full_env,
         cwd=str(cwd) if cwd is not None else None,
@@ -239,7 +239,7 @@ def test_run_sh_demo_full_flow(
     name = instance.get("metadata", {}).get("name", "")
     api_group = instance.get("apiVersion", "").split("/", 1)[0]
 
-    kubectl_check = subprocess.run(  # noqa: S603, S607
+    kubectl_check = subprocess.run(
         [
             "kubectl",
             "--context",
