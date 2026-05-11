@@ -62,16 +62,15 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 
 @pytest.fixture
 def cli_runner() -> CliRunner:
-    """Return a fresh :class:`CliRunner` with stderr separation enabled.
+    """Return a fresh :class:`CliRunner` for one CLI test.
 
-    Click 8.2+ split stderr from stdout by default and dropped the
-    ``mix_stderr`` keyword. We pass it only when the running Click
-    version still accepts it so the fixture is forward-compatible.
+    Click 8.2+ dropped the ``mix_stderr`` keyword and split stderr from
+    stdout by default, so we just use the no-arg constructor. Tests that
+    grep for substrings concatenate ``result.stdout + result.stderr`` —
+    on Click 8.2+ ``result.stderr`` is always present (empty when no
+    bytes were written to it).
     """
-    try:
-        return CliRunner(mix_stderr=False)  # type: ignore[call-arg]
-    except TypeError:
-        return CliRunner()
+    return CliRunner()
 
 
 @pytest.fixture

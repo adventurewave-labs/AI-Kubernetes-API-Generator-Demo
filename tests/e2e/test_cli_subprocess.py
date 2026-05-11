@@ -30,7 +30,7 @@ def _python_cli(
     full_env = dict(os.environ)
     if env is not None:
         full_env.update(env)
-    return subprocess.run(  # noqa: S603 — argv is constructed from controlled values
+    return subprocess.run(
         [sys.executable, "-m", "ai_platform_generator.adapters.cli.main", *args],
         env=full_env,
         cwd=str(cwd) if cwd is not None else None,

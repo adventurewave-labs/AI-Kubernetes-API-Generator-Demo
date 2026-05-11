@@ -108,7 +108,7 @@ def test_openrouter_full_round_trip(
     request = _build_codegen_request_from_legacy(dict(payload))
 
     # Two consecutive build/generate cycles MUST produce identical bytes.
-    target = pytest.importorskip("pathlib").Path("/tmp")  # noqa: S108
+    target = pytest.importorskip("pathlib").Path("/tmp")
     ir_a = OpenAPIDocument.from_request(request)
     ir_b = OpenAPIDocument.from_request(request)
     assert ir_a.serialise() == ir_b.serialise(), "IR bytes drifted across runs"
@@ -278,7 +278,7 @@ def _build_codegen_request_from_legacy(data: dict[str, object]) -> CodegenReques
         gvk=gvk,
         spec_properties=tuple(props),
         output_path=OutputPath(
-            root=Path("/tmp").resolve(),  # noqa: S108
+            root=Path("/tmp").resolve(),
             relative=Path(output_dir),
         ),
         description=str(data.get("description") or f"Auto for {gvk.kind.value}."),
