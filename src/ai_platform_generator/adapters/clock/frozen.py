@@ -10,7 +10,7 @@ moves forward when :meth:`advance` is called.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 
 class FrozenClock:
@@ -18,11 +18,11 @@ class FrozenClock:
 
     def __init__(self, initial: datetime | None = None) -> None:
         if initial is None:
-            initial = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+            initial = datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC)
         if initial.tzinfo is None:
             # Force UTC so callers cannot accidentally compare aware vs
             # naive datetimes — the port contract is "timezone-aware UTC".
-            initial = initial.replace(tzinfo=timezone.utc)
+            initial = initial.replace(tzinfo=UTC)
         self._now: datetime = initial
         self._monotonic: float = 0.0
 

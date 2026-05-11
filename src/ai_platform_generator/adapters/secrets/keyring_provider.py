@@ -12,6 +12,7 @@ than silently broken.
 
 from __future__ import annotations
 
+from types import ModuleType
 from typing import TYPE_CHECKING
 
 from ai_platform_generator.domain.errors import ConfigurationError
@@ -20,10 +21,14 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     pass
 
 
+_keyring: ModuleType | None
+_keyring_errors: ModuleType | None
 try:  # pragma: no cover - exercised by import-side tests when keyring is present
-    import keyring as _keyring  # type: ignore[import-not-found]
-    import keyring.errors as _keyring_errors  # type: ignore[import-not-found]
+    import keyring as _keyring_module
+    import keyring.errors as _keyring_errors_module
 
+    _keyring = _keyring_module
+    _keyring_errors = _keyring_errors_module
     _KEYRING_AVAILABLE = True
 except ImportError:  # pragma: no cover
     _keyring = None
@@ -62,8 +67,10 @@ if _KEYRING_AVAILABLE:
             self._declared_names: list[str] = list(names or [])
 
         def get(self, name: str) -> str | None:
+            assert _keyring is not None  # branch guarded by _KEYRING_AVAILABLE
+            assert _keyring_errors is not None  # branch guarded by _KEYRING_AVAILABLE
             try:
-                value = _keyring.get_password(self._service_name, name)
+                value: str | None = _keyring.get_password(self._service_name, name)
             except _keyring_errors.KeyringError:
                 return None
             return value if value else None

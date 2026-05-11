@@ -24,9 +24,15 @@ class LlmProvider(Protocol):
     project's error taxonomy before the value crosses this boundary.
     """
 
-    name: str
-    model: str
-    mode: ProviderMode
+    # The three identifier attributes below are read-only from the
+    # perspective of consumers; implementations may back them with plain
+    # attributes or ``@property`` (e.g. :class:`FallbackLlmProvider`).
+    @property
+    def name(self) -> str: ...
+    @property
+    def model(self) -> str: ...
+    @property
+    def mode(self) -> ProviderMode: ...
 
     def is_available(self) -> bool:
         """Return ``True`` iff the provider is reachable and credentialled."""

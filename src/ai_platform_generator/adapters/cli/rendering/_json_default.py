@@ -20,7 +20,7 @@ Rules (per ``docs/ddd/bounded-contexts/05-user-interaction.md`` §5):
 from __future__ import annotations
 
 import base64
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import PurePath
 from typing import Any
@@ -45,8 +45,8 @@ def _json_default(obj: Any) -> Any:
         return str(obj)
     if isinstance(obj, datetime):
         # Render UTC as ``…Z``; preserve any explicit offset for non-UTC.
-        if obj.tzinfo is not None and obj.utcoffset() == timezone.utc.utcoffset(obj):
-            return obj.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+        if obj.tzinfo is not None and obj.utcoffset() == UTC.utcoffset(obj):
+            return obj.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
         return obj.isoformat()
     if isinstance(obj, Enum):
         return obj.value

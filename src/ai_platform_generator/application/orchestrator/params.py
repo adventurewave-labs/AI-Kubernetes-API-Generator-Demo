@@ -7,14 +7,14 @@ that drives a generation run.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class ArtifactType(str, Enum):
+class ArtifactType(StrEnum):
     """Wire-stable enum of the artefact types a run can produce.
 
     Matches the values listed in

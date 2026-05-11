@@ -14,7 +14,7 @@ group is bridged onto the orchestrator's :class:`TelemetrySink` so
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import click
 
@@ -116,11 +116,11 @@ def _build_generate_params(description: str, opts: dict[str, Any]) -> GeneratePa
     )
 
 
-def _resolve_log_format(opts: dict[str, Any]) -> str:
+def _resolve_log_format(opts: dict[str, Any]) -> Literal["tty", "json", "quiet"]:
     """Mirror :func:`adapters.cli.main._resolve_log_format` without import cycles."""
     explicit = opts.get("log_format")
-    if explicit:
-        return str(explicit)
+    if explicit in ("tty", "json", "quiet"):
+        return cast('Literal["tty", "json", "quiet"]', explicit)
     if not sys.stdout.isatty():
         return "json"
     return "tty"
@@ -156,7 +156,7 @@ def _subscribe_renderer(orchestrator: GenerationOrchestrator, renderer: Any) -> 
                 with contextlib.suppress(Exception):
                     renderer.event(event)
 
-    sink.emit = _tee_emit  # type: ignore[method-assign]
+    sink.emit = _tee_emit
 
 
 def _emit_json_summary(summary: Any) -> None:

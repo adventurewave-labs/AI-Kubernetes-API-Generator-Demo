@@ -59,7 +59,8 @@ class ApiModellingService:
         # Otherwise fall back to the aggregate's built-in factory so this
         # method remains operational during Wave 2.
         if self._ir_builder is not None:
-            ir = self._ir_builder.build(request)
+            built: OpenAPIDocument = self._ir_builder.build(request)
+            ir = built
         else:
             from ai_platform_generator.domain.aggregates.openapi_document import (
                 OpenAPIDocument as _OpenAPIDocument,

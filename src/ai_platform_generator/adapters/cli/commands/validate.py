@@ -13,6 +13,7 @@ from __future__ import annotations
 import contextlib
 import json
 import sys
+from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -113,6 +114,7 @@ def _build_validation_service(ctx: click.Context) -> Any:
     from ai_platform_generator.application.services.intent_interpretation import (
         IntentInterpretationService,
     )
+    from ai_platform_generator.domain.values import ProviderMode
 
     opts: dict[str, Any] = ctx.obj.get("opts", {})
 
@@ -126,7 +128,7 @@ def _build_validation_service(ctx: click.Context) -> Any:
     class _StubLlm:
         name = "stub"
         model = "stub"
-        mode = "live"
+        mode = ProviderMode.LIVE
 
         def complete_json(self, *_a: Any, **_kw: Any) -> dict[str, Any]:  # pragma: no cover
             return {}
@@ -136,9 +138,9 @@ def _build_validation_service(ctx: click.Context) -> Any:
 
     class _StubClock:
         def now(self) -> Any:  # pragma: no cover
-            from datetime import datetime, timezone
+            from datetime import datetime
 
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
 
         def monotonic(self) -> float:  # pragma: no cover
             import time

@@ -145,8 +145,9 @@ class OtelSink:
             span_id = self._span_correlator.open(run_id, event.name)
             self._spans[span_id] = span
         elif event.name in _SPAN_CLOSE_EVENTS:
-            span_id = self._span_correlator.current(run_id)
-            if span_id is not None:
+            close_span_id = self._span_correlator.current(run_id)
+            if close_span_id is not None:
+                span_id = close_span_id
                 span = self._spans.pop(span_id, None)
                 if span is not None:
                     # Decorate with payload attributes before ending so

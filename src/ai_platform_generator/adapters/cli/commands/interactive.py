@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import contextlib
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import click
 
@@ -190,10 +190,10 @@ def _run_one(
     return summary
 
 
-def _resolve_log_format(opts: dict[str, Any]) -> str:
+def _resolve_log_format(opts: dict[str, Any]) -> Literal["tty", "json", "quiet"]:
     explicit = opts.get("log_format")
-    if explicit:
-        return str(explicit)
+    if explicit in ("tty", "json", "quiet"):
+        return cast('Literal["tty", "json", "quiet"]', explicit)
     if not sys.stdout.isatty():
         return "json"
     return "tty"

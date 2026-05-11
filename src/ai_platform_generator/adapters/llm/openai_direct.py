@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 import openai
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from ai_platform_generator.adapters.llm.openrouter import _strip_to_json
 from ai_platform_generator.domain.errors import (
@@ -127,10 +128,13 @@ class OpenAiLlmAdapter:
         ]
 
         try:
+            # Cast: ``messages`` is a list of plain dicts here. The
+            # OpenAI SDK declares the typed-dict variants of
+            # :class:`ChatCompletionMessageParam`; structurally identical.
             response = self._client.chat.completions.create(
                 model=self.model,
-                messages=messages,
-                response_format=response_format,
+                messages=cast(list[ChatCompletionMessageParam], messages),
+                response_format=cast(Any, response_format),
                 temperature=0.1,
                 timeout=timeout_s,
             )

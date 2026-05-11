@@ -68,7 +68,7 @@ class DotenvSecretProvider:
         if not self._path.is_file():
             return {}
         try:
-            from dotenv import dotenv_values  # type: ignore[import-not-found]
+            from dotenv import dotenv_values
         except ImportError:  # pragma: no cover - python-dotenv ships in dev deps
             return self._fallback_parse()
         result: dict[str, Any] = dict(dotenv_values(self._path))

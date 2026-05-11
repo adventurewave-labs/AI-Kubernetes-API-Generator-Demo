@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "AI Kubernetes API Generator - DDD/hexagonal implementation"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     { name = "AI Platform Generator contributors" },
 ]
@@ -31,7 +31,6 @@ classifiers = [
     "Operating System :: POSIX",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Code Generators",
@@ -69,6 +68,7 @@ dev = [
     "build>=1.2",
     "twine>=5",
     "cyclonedx-bom>=4.4",
+    "types-PyYAML>=6.0",
 ]
 opentelemetry = [
     "opentelemetry-sdk>=1.25",
@@ -140,16 +140,33 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 "tests/**/*.py" = ["B", "SIM"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
 namespace_packages = true
 explicit_package_bases = true
 files = ["src"]
+# Prototype files retained for reference; replaced in phases 3-6.
+# Mirrors [tool.ruff] extend-exclude.
+exclude = [
+    "^src/ai_platform_generator/agent\\.py$",
+    "^src/ai_platform_generator/cli\\.py$",
+    "^src/ai_platform_generator/cluster_manager\\.py$",
+    "^src/ai_platform_generator/codegen\\.py$",
+]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = [
+    "ai_platform_generator.agent",
+    "ai_platform_generator.cli",
+    "ai_platform_generator.cluster_manager",
+    "ai_platform_generator.codegen",
+]
 ignore_errors = true
 
 [tool.pydantic-mypy]

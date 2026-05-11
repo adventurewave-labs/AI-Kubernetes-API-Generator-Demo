@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import IO, TYPE_CHECKING, Any
 
 from ._json_default import _json_default
@@ -31,7 +31,7 @@ _TOOL_VERSION = "0.1.0"
 
 def _utc_now_iso() -> str:
     return (
-        datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+        datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
     )
 
 

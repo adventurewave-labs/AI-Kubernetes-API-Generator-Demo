@@ -21,7 +21,7 @@ should validate it before calling ``make`` (see ADR-0016).
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 from uuid import UUID, uuid4
 
@@ -72,7 +72,7 @@ class _CatalogedEvent(DomainEvent):
             run_id=run_id,
             name=cls.NAME,
             schema_version=cls.SCHEMA_VERSION,
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
             context=cls.CONTEXT,
             payload=dict(payload),
             causation_id=causation_id,

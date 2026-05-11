@@ -10,9 +10,9 @@ failures (e.g. ``apply`` raising a translated ``ClusterProvisioningError``).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from ai_platform_generator.ports.cluster_runtime import (
     ApplyResult,
@@ -93,7 +93,9 @@ class FakeClusterRuntime:
             name=name, exists=True, ready=True, nodes=("fake-control-plane",),
         )
         self._events.setdefault(name, [])
-        return cluster
+        # ``_FakeCluster`` is the structural stand-in matched by ``_RealCluster``
+        # in the kind adapter; the application service only reads ``.name``.
+        return cast("Cluster", cluster)
 
     def delete_cluster(self, name: str) -> None:
         self._maybe_raise("delete_cluster")
@@ -158,7 +160,7 @@ class FakeClusterRuntime:
     def add_event(self, cluster_name: str, event: ClusterEvent | None = None) -> ClusterEvent:
         """Append a synthetic cluster event for later retrieval via :meth:`events`."""
         ev = event or ClusterEvent(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             type="Normal",
             reason="Synthesized",
             message="injected by FakeClusterRuntime",

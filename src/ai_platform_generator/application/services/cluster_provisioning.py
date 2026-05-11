@@ -256,6 +256,10 @@ class ClusterProvisioningService:
     ) -> Deployment:
         """Confirm the deployed resource is queryable; raise on failure."""
         gvk = getattr(deployment, "gvk", None)
+        if gvk is None:
+            raise DeploymentVerificationFailed(
+                "Deployment is missing required ``gvk`` for verification."
+            )
         instance_name = getattr(deployment, "instance_name", "")
         try:
             state = self._runtime.get(
@@ -410,7 +414,8 @@ def _crd_name_for(gvk: Any) -> str:
     if gvk is None:
         return ""
     try:
-        return gvk.crd_name
+        name: str = gvk.crd_name
+        return name
     except AttributeError:
         return ""
 

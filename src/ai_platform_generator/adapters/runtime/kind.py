@@ -33,10 +33,10 @@ import subprocess
 import tempfile
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from ai_platform_generator.domain.errors import (
     ClusterCreationTimedOut,
@@ -436,7 +436,14 @@ class KindClusterRuntime:
                 os.unlink(tmp.name)
 
         status = self.cluster_status(name)
-        return _RealCluster(name=name, runtime=self.name, nodes=tuple(status.nodes))
+        # ``_RealCluster`` is a structural stand-in for the eventual
+        # :class:`Cluster` aggregate; downstream code only reads ``.name``.
+        # Once :class:`Cluster` can be constructed without a real kubeconfig
+        # we will return the aggregate directly. See ``_RealCluster`` docstring.
+        return cast(
+            "Cluster",
+            _RealCluster(name=name, runtime=self.name, nodes=tuple(status.nodes)),
+        )
 
     def delete_cluster(self, name: str) -> None:
         """Delete a kind cluster, tolerating already-absent state."""
@@ -644,8 +651,8 @@ def _parse_timestamp(raw: Any) -> datetime:
             normalised = raw.replace("Z", "+00:00")
             return datetime.fromisoformat(normalised)
         except ValueError:  # pragma: no cover - tolerate weird inputs
-            return datetime.now(timezone.utc)
-    return datetime.now(timezone.utc)
+            return datetime.now(UTC)
+    return datetime.now(UTC)
 
 
 # Re-exported so consumers wiring composition can refer to the duck-typed

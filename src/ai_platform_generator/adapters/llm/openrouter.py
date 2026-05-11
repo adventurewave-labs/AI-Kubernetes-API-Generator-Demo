@@ -20,10 +20,11 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import openai
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from ai_platform_generator.domain.errors import (
     LlmAuthenticationFailed,
@@ -175,9 +176,12 @@ class OpenRouterLlmAdapter:
         ]
 
         try:
+            # Cast: ``messages`` is a list of plain dicts here. The
+            # OpenAI SDK declares the typed-dict variants of
+            # :class:`ChatCompletionMessageParam`; structurally identical.
             response = self._client.chat.completions.create(
                 model=self.model,
-                messages=messages,
+                messages=cast(list[ChatCompletionMessageParam], messages),
                 response_format={"type": "json_object"},
                 temperature=0.1,
                 timeout=timeout_s,

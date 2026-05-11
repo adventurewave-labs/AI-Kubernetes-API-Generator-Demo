@@ -106,7 +106,7 @@ def _build_renderer(opts: dict[str, Any]) -> Any:
     """
     log_format = _resolve_log_format(opts)
     try:
-        from .rendering import build_renderer as _build  # type: ignore[attr-defined]
+        from .rendering import build_renderer as _build
     except ImportError:
         return _PrintRenderer(log_format=log_format)
 
@@ -199,7 +199,7 @@ def _build_renderer(opts: dict[str, Any]) -> Any:
     help="Load secrets from .env in cwd.",
 )
 @click.pass_context
-def main(ctx: click.Context, **opts: Any) -> None:
+def main(ctx: click.Context, /, **opts: Any) -> None:
     """AI Kubernetes API Generator — natural language → CRDs."""
     ctx.ensure_object(dict)
     ctx.obj["opts"] = opts

@@ -29,7 +29,7 @@ import contextlib
 import dataclasses
 import shutil
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -448,7 +448,7 @@ def _to_run_aggregate(run: _RunState) -> Any:
     importable; falls back to a ``SimpleNamespace`` otherwise.
     """
     try:
-        from ai_platform_generator.domain.aggregates import (  # type: ignore[attr-defined]
+        from ai_platform_generator.domain.aggregates import (
             GenerationRun,
             RunState,
         )
@@ -462,7 +462,7 @@ def _to_run_aggregate(run: _RunState) -> Any:
     except (ImportError, AttributeError, TypeError):
         return SimpleNamespace(
             id=run.id,
-            started_at=run.started_at or datetime.now(timezone.utc),
+            started_at=run.started_at or datetime.now(UTC),
             intent=run.intent,
             state=run.state,
         )

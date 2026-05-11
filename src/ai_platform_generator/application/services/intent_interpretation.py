@@ -189,7 +189,8 @@ class IntentInterpretationService:
         """Run the configured ``RequestEnhancer`` (passthrough if absent)."""
         if self._enhancer is None:
             return request
-        return self._enhancer.enhance(request)
+        enhanced: CodegenRequest = self._enhancer.enhance(request)
+        return enhanced
 
     # ------------------------------------------------------------------
     # Internals

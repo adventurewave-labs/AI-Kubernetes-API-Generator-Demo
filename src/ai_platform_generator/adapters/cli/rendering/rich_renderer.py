@@ -20,6 +20,7 @@ from rich.progress import (
     BarColumn,
     Progress,
     SpinnerColumn,
+    TaskID,
     TextColumn,
     TimeElapsedColumn,
 )
@@ -95,7 +96,7 @@ class RichRenderer:
             )
         self.console = console
         self._progress: Progress | None = None
-        self._task_ids: dict[str, int] = {}
+        self._task_ids: dict[str, TaskID] = {}
         self._active_stage: str | None = None
         self._debug: bool = bool(os.environ.get("AIPG_DEBUG"))
 
