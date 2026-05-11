@@ -42,7 +42,12 @@ func main() {
 		"The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager.")
-	opts := zap.Options{Development: true}
+	// Production logging by default (structured JSON, sampled). Operators
+	// can opt-in to development-mode logs via the --zap-devel CLI flag.
+	// Per ADR-0020 §"Generated-artefact hardening", verbose dev logs are
+	// off by default so reconciled object contents are not stamped into
+	// logs without operator intent.
+	opts := zap.Options{Development: false}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 

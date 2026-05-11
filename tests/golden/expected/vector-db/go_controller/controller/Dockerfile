@@ -1,12 +1,31 @@
 # syntax=docker/dockerfile:1
 # Multi-stage build for the VectorDB controller.
+#
+# Hardening posture (per ADR-0020 §"Generated-artefact hardening"):
+#   * Multi-stage build: build toolchain never ships in the runtime image.
+#   * Runtime image is distroless/static:nonroot — no shell, no package
+#     manager, no setuid binaries.
+#   * Container runs as UID 65532 (the upstream "nonroot" user).
+#   * Build uses -mod=readonly so an unexpected module mutation aborts
+#     the build instead of silently fetching a new version. Combined
+#     with a checked-in go.sum this enforces supply-chain integrity.
+#   * Build uses -trimpath to strip local filesystem paths from the
+#     binary, eliminating an information-disclosure vector.
+#   * Static linking (CGO_ENABLED=0) so the binary runs on the distroless
+#     base, which has no glibc.
+#   * Do **not** add ARG/ENV entries for secrets — the controller reads
+#     credentials from Kubernetes Secret objects at runtime.
+#
 # Stage 1 — builder image based on the upstream Go toolchain.
 FROM golang:1.22 AS builder
 
 WORKDIR /workspace
 
-# Cache module downloads — copy go.mod/go.sum first.
+# Cache module downloads — copy go.mod/go.sum first. The go.sum glob
+# allows the file to be optional during local scaffolding and required
+# once `go mod tidy` has been run, without changing the Dockerfile.
 COPY go.mod go.mod
+COPY go.sum* ./
 RUN go mod download
 
 # Copy the rest of the source tree.
@@ -15,9 +34,14 @@ COPY api/ api/
 COPY internal/ internal/
 
 # Build a fully static binary; CGO is disabled for distroless compatibility.
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
+# -mod=readonly: refuse to mutate go.mod/go.sum during build (supply chain).
+# -trimpath:     strip absolute paths from the binary (information disclosure).
+# -ldflags:      strip the symbol table for a smaller, less-fingerprintable
+#                binary (-s -w drops the DWARF debug info too).
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -mod=readonly -trimpath -ldflags="-s -w" -a -o manager main.go
 
-# Stage 2 — minimal runtime image (distroless, non-root).
+# Stage 2 — minimal runtime image (distroless, non-root, no shell).
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
