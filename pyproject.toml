@@ -59,6 +59,7 @@ Changelog = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/blob/
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
+    "pytest-benchmark>=4.0",
     "pytest-cov>=5",
     "mypy>=1.10",
     "ruff>=0.5",

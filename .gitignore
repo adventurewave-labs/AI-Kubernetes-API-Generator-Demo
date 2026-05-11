@@ -672,3 +672,5 @@ Thumbs.db
 .hive-mind
 .mcp.json
 .github
+# Local run history written by JsonlRunRepository (default config)
+.platform-gen/
