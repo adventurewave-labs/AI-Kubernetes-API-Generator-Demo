@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ai-platform-generator"
 dynamic = ["version"]
-description = "AI Kubernetes API Generator - DDD/hexagonal implementation"
+description = "AI-driven Kubernetes API generator that compresses the time from platform-API idea to running CRD from days to minutes, producing artefacts a platform engineer would merge unchanged."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
@@ -15,27 +15,30 @@ authors = [
 keywords = [
     "kubernetes",
     "crd",
-    "ai",
     "openapi",
+    "llm",
+    "code-generation",
     "platform-engineering",
+    "ai",
+    "ddd",
     "operator",
     "kubebuilder",
-    "llm",
     "openrouter",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Code Generators",
+    "Topic :: System :: Systems Administration",
     "Topic :: System :: Clustering",
-    "Topic :: System :: Software Distribution",
+    "Typing :: Typed",
 ]
 dependencies = [
     "pydantic>=2.5",
@@ -50,9 +53,9 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo"
-Repository = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo"
-Issues = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/issues"
 Documentation = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/tree/main/docs"
+Source = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo"
+Issues = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/issues"
 Changelog = "https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
