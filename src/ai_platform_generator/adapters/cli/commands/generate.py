@@ -80,6 +80,8 @@ def generate(ctx: click.Context, description: str, output_format: str) -> None:
 
 def _build_app_config(opts: dict[str, Any]) -> AppConfig:
     """Translate the global Click options into an :class:`AppConfig`."""
+    from pathlib import Path
+
     from ai_platform_generator.application.composition import AppConfig
 
     kwargs: dict[str, Any] = {
@@ -91,7 +93,11 @@ def _build_app_config(opts: dict[str, Any]) -> AppConfig:
     }
     out_dir = opts.get("output_dir")
     if out_dir is not None:
-        kwargs["output_dir"] = out_dir
+        out_path = Path(out_dir).resolve()
+        kwargs["output_dir"] = out_path
+        # Anchor the filesystem repo's traversal-safety root at the
+        # user-supplied output directory so writes under it are allowed.
+        kwargs["artifact_root"] = out_path
     return AppConfig(**kwargs)
 
 
