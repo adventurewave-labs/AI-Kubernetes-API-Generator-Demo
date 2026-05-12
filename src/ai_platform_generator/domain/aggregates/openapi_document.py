@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any
 
@@ -142,6 +142,18 @@ class OpenAPIDocument:
     paths: Mapping[str, Mapping[str, Any]]
     extensions: Mapping[str, Any]
 
+    # Lazily populated GVK cache. The IR is frozen, so the value is
+    # stable for the lifetime of the instance — but constructing it
+    # touches three regex-validating value objects (``Group`` / ``Version``
+    # / ``Kind``) and was the dominant per-saga ``isinstance`` source
+    # in cProfile. ``compare=False`` keeps aggregate equality keyed on
+    # the four content fields only; ``repr=False`` hides the slot from
+    # debug output. The slot is mutated through ``object.__setattr__``
+    # inside :pyattr:`gvk` because the dataclass is ``frozen=True``.
+    _gvk_cache: GVK | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
+
     # ------------------------------------------------------------------
     # Invariants
     # ------------------------------------------------------------------
@@ -184,18 +196,29 @@ class OpenAPIDocument:
     def gvk(self) -> GVK:
         """Recover the GVK round-tripped through ``info.x-kubernetes-gvk``.
 
+        The IR is frozen, so the GVK is stable across calls — we memoise
+        on first access into the ``_gvk_cache`` slot rather than rebuild
+        three regex-validated value objects each time a generator asks
+        for the GVK (≈ 20 calls per saga). The extension itself is read
+        directly off the Pydantic ``model_extra`` mapping, avoiding a
+        full ``model_dump(mode="json")`` deep copy.
+
         Raises
         ------
         InvalidOpenAPIDocument
             If the extension is missing or malformed.
         """
-        ext = self.info.model_dump(mode="json").get("x-kubernetes-gvk")
+        cached = self._gvk_cache
+        if cached is not None:
+            return cached
+        extras = self.info.model_extra
+        ext = extras.get("x-kubernetes-gvk") if extras is not None else None
         if not isinstance(ext, Mapping):
             raise InvalidOpenAPIDocument(
                 "OpenAPIDocument.info is missing the 'x-kubernetes-gvk' extension"
             )
         try:
-            return GVK(
+            gvk = GVK(
                 group=Group(str(ext["group"])),
                 version=Version(str(ext["version"])),
                 kind=Kind(str(ext["kind"])),
@@ -204,6 +227,10 @@ class OpenAPIDocument:
             raise InvalidOpenAPIDocument(
                 f"x-kubernetes-gvk extension missing key: {exc}"
             ) from exc
+        # Cache stash bypasses the frozen=True guard on purpose: the
+        # slot is private and only ever written to here.
+        object.__setattr__(self, "_gvk_cache", gvk)
+        return gvk
 
     # ------------------------------------------------------------------
     # IR builder (factory)

@@ -21,6 +21,7 @@ doubles continue to satisfy it without subclassing the ABC.
 
 from __future__ import annotations
 
+import functools
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -160,8 +161,17 @@ class ArtifactGenerationService:
 # ---------------------------------------------------------------------------
 
 
+@functools.cache
 def _safe_git_sha() -> str:
-    """Best-effort ``git rev-parse HEAD``; ``"unknown"`` outside a repo."""
+    """Best-effort ``git rev-parse HEAD``; ``"unknown"`` outside a repo.
+
+    The git SHA of the running tool is stable for the lifetime of the
+    process — there is no scenario in which a single ``python -m
+    ai_platform_generator`` invocation observes two different HEADs.
+    Memoising removes a per-saga ``fork+exec`` (≈2 ms each) which is
+    the single largest non-template cost in the steady-state profile.
+    Tests that mutate the answer can call ``_safe_git_sha.cache_clear()``.
+    """
     try:
         out = subprocess.run(
             ["git", "rev-parse", "HEAD"],
