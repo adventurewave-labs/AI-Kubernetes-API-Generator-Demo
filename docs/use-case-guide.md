@@ -245,7 +245,7 @@ Structural schema validation is always enabled (required by v1).
 | Try it immediately (no setup) | [Quick start — offline](#scenario-4----conference-or-workshop-demo) |
 | Understand the domain model | [`docs/ddd/01-domain-vision.md`](ddd/01-domain-vision.md) |
 | Read architectural decisions | [`docs/adr/README.md`](adr/README.md) |
-| See all validation evidence | [`docs/validation-report.md`](validation-report.md) |
+| See all validation evidence | [`docs/validation-report.md`](validation-report.md) + [`docs/cli-validation-report.md`](cli-validation-report.md) |
 | Extend with a new generator | [`docs/ddd/bounded-contexts/03-artifact-generation.md §13`](ddd/bounded-contexts/03-artifact-generation.md) |
 | Integrate into CI | [Scenario 5](#scenario-5----cicd-pipeline-integration) |
 | Deploy to Kind | `./run.sh demo` |

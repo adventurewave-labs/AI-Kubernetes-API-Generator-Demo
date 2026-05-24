@@ -59,16 +59,24 @@ def build(
                 renderer.error(exc)
         sys.exit(code_for(exc) or EXIT_GENERIC)
 
-    # Apply --output-dir override if given.
+    # Apply --output-dir override if given. An absolute path is anchored
+    # as the root itself (relative="."); a relative path is resolved
+    # against the current working directory.
     cli_output = output_dir or opts.get("output_dir")
     if cli_output is not None:
         from ai_platform_generator.domain.values import OutputPath
 
-        request = request.with_output_path(
-            OutputPath(root=Path.cwd().resolve(), relative=Path(str(cli_output))),
-        )
+        out_path = Path(str(cli_output))
+        if out_path.is_absolute():
+            request = request.with_output_path(
+                OutputPath(root=out_path.resolve(), relative=Path(".")),
+            )
+        else:
+            request = request.with_output_path(
+                OutputPath(root=Path.cwd().resolve(), relative=out_path),
+            )
 
-    config = _build_app_config(opts)
+    config = _build_app_config(opts, output_override=cli_output)
     try:
         from ai_platform_generator.application.composition import build_orchestrator
     except Exception as exc:  # pragma: no cover - defensive
@@ -130,7 +138,9 @@ def _load_codegen_request(path: Path) -> Any:
         ) from exc
 
 
-def _build_app_config(opts: dict[str, Any]) -> Any:
+def _build_app_config(
+    opts: dict[str, Any], output_override: Any = None
+) -> Any:
     """Mirror :func:`generate._build_app_config` without import cycles."""
     from ai_platform_generator.application.composition import AppConfig
 
@@ -141,9 +151,13 @@ def _build_app_config(opts: dict[str, Any]) -> Any:
         "log_format": _resolve_log_format(opts),
         "enable_otel": bool(opts.get("otel", False)),
     }
-    out_dir = opts.get("output_dir")
+    out_dir = output_override if output_override is not None else opts.get("output_dir")
     if out_dir is not None:
-        kwargs["output_dir"] = out_dir
+        out_path = Path(str(out_dir)).resolve()
+        kwargs["output_dir"] = out_path
+        # Anchor the filesystem repo's traversal-safety root at the
+        # user-supplied output directory so writes under it are allowed.
+        kwargs["artifact_root"] = out_path
     return AppConfig(**kwargs)
 
 

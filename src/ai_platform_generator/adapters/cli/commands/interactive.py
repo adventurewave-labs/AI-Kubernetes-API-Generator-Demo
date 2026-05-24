@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import contextlib
 import sys
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 import click
@@ -149,14 +150,20 @@ def _run_one(
     )
     from ai_platform_generator.application.orchestrator import GenerateParams
 
-    config = AppConfig(
-        llm_provider=opts.get("llm_provider", "openrouter"),
-        allow_demo_mode=opts.get("allow_demo_mode", True),
-        cluster_name=opts.get("cluster_name", "ai-platform-demo"),
-        log_format=_resolve_log_format(opts),
-        enable_otel=bool(opts.get("otel", False)),
-        **({"output_dir": opts["output_dir"]} if opts.get("output_dir") else {}),
-    )
+    config_kwargs: dict[str, Any] = {
+        "llm_provider": opts.get("llm_provider", "openrouter"),
+        "allow_demo_mode": opts.get("allow_demo_mode", True),
+        "cluster_name": opts.get("cluster_name", "ai-platform-demo"),
+        "log_format": _resolve_log_format(opts),
+        "enable_otel": bool(opts.get("otel", False)),
+    }
+    if opts.get("output_dir"):
+        out_path = Path(str(opts["output_dir"])).resolve()
+        config_kwargs["output_dir"] = out_path
+        # Anchor the filesystem repo's traversal-safety root at the
+        # user-supplied output directory so writes under it are allowed.
+        config_kwargs["artifact_root"] = out_path
+    config = AppConfig(**config_kwargs)
     orchestrator = build_orchestrator(config)
     params = GenerateParams(
         intent_text=intent,

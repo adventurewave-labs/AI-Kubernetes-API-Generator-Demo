@@ -235,7 +235,8 @@ The full domain model is in [`docs/ddd/`](docs/ddd/README.md).
 | [`docs/adr/README.md`](docs/adr/README.md) | Architecture Decision Record index (ADR-0001 – ADR-0020) |
 | [`docs/ddd/README.md`](docs/ddd/README.md) | Domain-Driven Design overview and reading order |
 | [`docs/use-case-guide.md`](docs/use-case-guide.md) | Persona-based guide — who this is for and how to use it |
-| [`docs/validation-report.md`](docs/validation-report.md) | Full gate validation report with captured command I/O |
+| [`docs/validation-report.md`](docs/validation-report.md) | Gate validation report (lint, types, tests, benchmarks) |
+| [`docs/cli-validation-report.md`](docs/cli-validation-report.md) | Comprehensive per-command CLI validation with captured I/O |
 
 ---
 
