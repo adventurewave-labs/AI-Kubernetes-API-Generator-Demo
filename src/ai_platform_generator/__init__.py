@@ -5,7 +5,7 @@ An AI agent that accelerates Kubernetes platform development through
 natural language to code generation.
 """
 
-__version__ = "0.1.0"
+__version__ = "1.1.0"
 __author__ = "AI Assistant"
 __email__ = "ai@example.com"
 
