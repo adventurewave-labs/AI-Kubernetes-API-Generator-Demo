@@ -1,8 +1,16 @@
+<p align="center">
+  <img src="docs/logo.svg" alt="AI Kubernetes API Generator" width="160" height="160"/>
+</p>
+
 # AI Kubernetes API Generator
 
 > Transform a plain-English description into a complete, production-ready Kubernetes API
 > — CRD, sample instance, OpenAPI spec, Go controller scaffold, MCP server, and
 > kustomization — in under one second, with or without an internet connection.
+
+<p align="center">
+  <img src="docs/architecture-infographic.svg" alt="End-to-end architecture flow" width="100%"/>
+</p>
 
 ---
 
@@ -235,8 +243,11 @@ The full domain model is in [`docs/ddd/`](docs/ddd/README.md).
 | [`docs/adr/README.md`](docs/adr/README.md) | Architecture Decision Record index (ADR-0001 – ADR-0020) |
 | [`docs/ddd/README.md`](docs/ddd/README.md) | Domain-Driven Design overview and reading order |
 | [`docs/use-case-guide.md`](docs/use-case-guide.md) | Persona-based guide — who this is for and how to use it |
-| [`docs/validation-report.md`](docs/validation-report.md) | Gate validation report (lint, types, tests, benchmarks) |
+| [`docs/VALIDATION_REPORT.md`](docs/VALIDATION_REPORT.md) | v1.0.0 release validation report with GO verdict |
+| [`docs/validation-report.md`](docs/validation-report.md) | Earlier gate validation report (lint, types, tests, benchmarks) |
 | [`docs/cli-validation-report.md`](docs/cli-validation-report.md) | Comprehensive per-command CLI validation with captured I/O |
+| [`docs/RELEASE_PROCEDURE.md`](docs/RELEASE_PROCEDURE.md) | Reusable release runbook (works for v1.1, v2.0, …) |
+| [`RELEASE_NOTES.md`](RELEASE_NOTES.md) | v1.0.0 release notes |
 
 ---
 

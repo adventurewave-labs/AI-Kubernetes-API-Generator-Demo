@@ -1,0 +1,9 @@
+apiVersion: cache.cnoe.io/v1alpha1
+kind: RedisCluster
+metadata:
+  name: my-rediscluster-instance
+  namespace: default
+spec:
+  memoryGiB: 1
+  persistence: true
+  port: 1

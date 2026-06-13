@@ -4,4 +4,4 @@ import ai_platform_generator
 
 
 def test_package_version() -> None:
-    assert ai_platform_generator.__version__ == "0.1.0"
+    assert ai_platform_generator.__version__ == "1.0.0"

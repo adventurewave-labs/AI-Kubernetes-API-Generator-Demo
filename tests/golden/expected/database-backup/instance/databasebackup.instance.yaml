@@ -1,0 +1,9 @@
+apiVersion: database.cnoe.io/v1alpha1
+kind: DatabaseBackup
+metadata:
+  name: my-databasebackup-instance
+  namespace: default
+spec:
+  enabled: true
+  retentionDays: 1
+  schedule: example

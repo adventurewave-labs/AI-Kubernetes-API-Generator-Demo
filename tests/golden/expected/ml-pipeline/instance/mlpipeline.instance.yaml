@@ -1,0 +1,10 @@
+apiVersion: ai.platform.cnoe.io/v1alpha1
+kind: MLPipeline
+metadata:
+  name: my-mlpipeline-instance
+  namespace: default
+spec:
+  gpuEnabled: true
+  parallelism: 1
+  stages:
+  - example

@@ -1,0 +1,9 @@
+apiVersion: platform.cnoe.io/v1alpha1
+kind: CacheCluster
+metadata:
+  name: my-cachecluster-instance
+  namespace: default
+spec:
+  memory: example
+  port: 1
+  size: large

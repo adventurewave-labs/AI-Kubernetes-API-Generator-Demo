@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">AI Kubernetes API Generator</title>
+  <desc id="desc">A hexagon — a nod to Kubernetes — enclosing an AI sparkle, with API brackets at the base, in Kubernetes blue.</desc>
+
+  <defs>
+    <linearGradient id="hexGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4A82E8"/>
+      <stop offset="100%" stop-color="#326CE5"/>
+    </linearGradient>
+    <linearGradient id="sparkGradient" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8F0FE"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.25"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Outer hexagon (Kubernetes silhouette nod) -->
+  <polygon points="100,14 172,55 172,145 100,186 28,145 28,55"
+           fill="url(#hexGradient)"
+           stroke="#1E4FB8" stroke-width="2.5"
+           filter="url(#softShadow)"/>
+
+  <!-- Inner hex ring (subtle) -->
+  <polygon points="100,30 158,63 158,137 100,170 42,137 42,63"
+           fill="none"
+           stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="1.5"/>
+
+  <!-- AI sparkle: a four-point star -->
+  <path d="M 100 55
+           L 108 92
+           L 145 100
+           L 108 108
+           L 100 145
+           L 92 108
+           L 55 100
+           L 92 92 Z"
+        fill="url(#sparkGradient)"/>
+
+  <!-- Small accent sparkles for the AI "burst" feel -->
+  <g fill="#FFFFFF" fill-opacity="0.85">
+    <path d="M 60 55 l 4 8 l 8 4 l -8 4 l -4 8 l -4 -8 l -8 -4 l 8 -4 z"/>
+    <path d="M 140 55 l 3 6 l 6 3 l -6 3 l -3 6 l -3 -6 l -6 -3 l 6 -3 z"/>
+    <path d="M 60 145 l 3 6 l 6 3 l -6 3 l -3 6 l -3 -6 l -6 -3 l 6 -3 z"/>
+    <path d="M 140 145 l 4 8 l 8 4 l -8 4 l -4 8 l -4 -8 l -8 -4 l 8 -4 z"/>
+  </g>
+
+  <!-- API brackets at the base of the hexagon -->
+  <g font-family="ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace"
+     font-weight="700" font-size="22" fill="#FFFFFF">
+    <text x="80" y="167" text-anchor="middle">{</text>
+    <text x="120" y="167" text-anchor="middle">}</text>
+  </g>
+</svg>

@@ -69,6 +69,10 @@ db.sqlite3-journal
 
 # Flask stuff:
 instance/
+# …but golden-test fixtures under tests/golden/expected/<scenario>/instance/
+# are real source files and must be tracked.
+!tests/golden/expected/**/instance/
+!tests/golden/expected/**/instance/**
 .webassets-cache
 
 # Scrapy stuff:
@@ -243,6 +247,9 @@ crds/*.yml
 
 # kustomize
 kustomization.yaml
+# …but golden-test fixtures must be tracked.
+!tests/golden/expected/**/kustomization.yaml
+!tests/golden/expected/**/kustomization/**
 
 # Terraform
 *.tfstate

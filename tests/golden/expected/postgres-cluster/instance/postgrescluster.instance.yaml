@@ -1,0 +1,10 @@
+apiVersion: database.cnoe.io/v1alpha1
+kind: PostgresCluster
+metadata:
+  name: my-postgrescluster-instance
+  namespace: default
+spec:
+  backupSchedule: example
+  replicas: 1
+  storageGiB: 1
+  tlsEnabled: true

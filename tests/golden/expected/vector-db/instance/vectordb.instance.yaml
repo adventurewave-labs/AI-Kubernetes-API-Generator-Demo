@@ -1,0 +1,9 @@
+apiVersion: ai.platform.cnoe.io/v1alpha1
+kind: VectorDB
+metadata:
+  name: my-vectordb-instance
+  namespace: default
+spec:
+  dimensions: 1
+  engineType: milvus
+  replicas: 1

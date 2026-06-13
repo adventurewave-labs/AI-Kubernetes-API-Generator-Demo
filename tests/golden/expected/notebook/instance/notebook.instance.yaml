@@ -1,0 +1,9 @@
+apiVersion: datascience.cnoe.io/v1alpha1
+kind: Notebook
+metadata:
+  name: my-notebook-instance
+  namespace: default
+spec:
+  cpu: example
+  gpu: true
+  memory: example

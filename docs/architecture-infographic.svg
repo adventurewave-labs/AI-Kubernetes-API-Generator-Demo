@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" role="img" aria-labelledby="title desc">
+  <title id="title">AI Kubernetes API Generator — Architecture Flow</title>
+  <desc id="desc">User describes a Kubernetes API in natural language. The CLI passes the intent to an LLM provider, which produces a structured CodegenRequest. The API Modelling service turns it into an OpenAPI 3.0 Intermediate Representation. Six generators produce CRD, sample instance, OpenAPI, Go controller, MCP server, and kustomization artefacts, sealed with a SHA-256 provenance manifest, optionally applied to a Kubernetes cluster. A telemetry layer underneath emits structured events.</desc>
+
+  <defs>
+    <!-- Color palette -->
+    <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6B7280"/><stop offset="100%" stop-color="#4B5563"/>
+    </linearGradient>
+    <linearGradient id="cliGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#60A5FA"/><stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="llmGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="irGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="genGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#34D399"/><stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="k8sGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4A82E8"/><stop offset="100%" stop-color="#326CE5"/>
+    </linearGradient>
+    <linearGradient id="obsGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1F2937"/><stop offset="100%" stop-color="#374151"/>
+    </linearGradient>
+
+    <!-- Arrow markers -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1F2937"/>
+    </marker>
+    <marker id="arrowSubtle" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6B7280"/>
+    </marker>
+
+    <filter id="boxShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="2" result="o"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <style>
+      .label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; fill: #FFFFFF; }
+      .title { font-size: 16px; font-weight: 700; }
+      .sub   { font-size: 11px; font-weight: 500; fill-opacity: 0.92; }
+      .mono  { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 10px; }
+      .head  { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+               font-weight: 700; font-size: 20px; fill: #111827; }
+      .tag   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+               font-size: 11px; fill: #6B7280; }
+      .flowLabel { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+                   font-size: 11px; font-style: italic; fill: #4B5563; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="500" fill="#F9FAFB"/>
+
+  <!-- Header -->
+  <text x="450" y="34" class="head" text-anchor="middle">AI Kubernetes API Generator — End-to-End Flow</text>
+  <text x="450" y="54" class="tag"  text-anchor="middle">natural language → CRD + sample + Go controller + OpenAPI + MCP + kustomization, signed with SHA-256</text>
+
+  <!-- =========================================================== -->
+  <!-- Row 1: User → CLI → LLM → IR (left-to-right pipeline)        -->
+  <!-- =========================================================== -->
+
+  <!-- USER -->
+  <g filter="url(#boxShadow)">
+    <rect x="30" y="100" width="120" height="80" rx="10" fill="url(#userGrad)"/>
+  </g>
+  <text x="90" y="130" class="label title" text-anchor="middle">User</text>
+  <text x="90" y="150" class="label sub"   text-anchor="middle">describes the API</text>
+  <text x="90" y="166" class="label sub"   text-anchor="middle">in English</text>
+
+  <!-- Arrow user → CLI -->
+  <line x1="155" y1="140" x2="195" y2="140" stroke="#1F2937" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="175" y="132" class="flowLabel" text-anchor="middle">intent</text>
+
+  <!-- CLI -->
+  <g filter="url(#boxShadow)">
+    <rect x="200" y="100" width="140" height="80" rx="10" fill="url(#cliGrad)"/>
+  </g>
+  <text x="270" y="128" class="label title" text-anchor="middle">CLI</text>
+  <text x="270" y="148" class="label sub"   text-anchor="middle">Click + Rich</text>
+  <text x="270" y="164" class="label mono"  text-anchor="middle">generate / build / …</text>
+
+  <!-- Arrow CLI → LLM -->
+  <line x1="345" y1="140" x2="385" y2="140" stroke="#1F2937" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="365" y="132" class="flowLabel" text-anchor="middle">prompt</text>
+
+  <!-- LLM -->
+  <g filter="url(#boxShadow)">
+    <rect x="390" y="100" width="160" height="80" rx="10" fill="url(#llmGrad)"/>
+  </g>
+  <text x="470" y="124" class="label title" text-anchor="middle">LLM Provider</text>
+  <text x="470" y="144" class="label sub"   text-anchor="middle">OpenRouter · OpenAI</text>
+  <text x="470" y="160" class="label sub"   text-anchor="middle">Demo Mode (offline)</text>
+  <text x="470" y="174" class="label mono"  text-anchor="middle">+ Fallback chain</text>
+
+  <!-- Arrow LLM → IR -->
+  <line x1="555" y1="140" x2="595" y2="140" stroke="#1F2937" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="575" y="132" class="flowLabel" text-anchor="middle">JSON</text>
+
+  <!-- IR -->
+  <g filter="url(#boxShadow)">
+    <rect x="600" y="100" width="170" height="80" rx="10" fill="url(#irGrad)"/>
+  </g>
+  <text x="685" y="124" class="label title" text-anchor="middle">OpenAPI 3.0 IR</text>
+  <text x="685" y="144" class="label sub"   text-anchor="middle">CodegenRequest →</text>
+  <text x="685" y="160" class="label sub"   text-anchor="middle">OpenAPIDocument</text>
+  <text x="685" y="174" class="label mono"  text-anchor="middle">Pydantic v2, validated</text>
+
+  <!-- Arrow IR ↓ (down to generators) -->
+  <line x1="685" y1="185" x2="685" y2="225" stroke="#1F2937" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="715" y="210" class="flowLabel" text-anchor="middle">IR</text>
+
+  <!-- =========================================================== -->
+  <!-- Row 2: Generators + Artifacts (right-to-left return)         -->
+  <!-- =========================================================== -->
+
+  <!-- Generators container -->
+  <g filter="url(#boxShadow)">
+    <rect x="450" y="230" width="320" height="160" rx="12" fill="url(#genGrad)"/>
+  </g>
+  <text x="610" y="256" class="label title" text-anchor="middle">6 Artifact Generators</text>
+  <text x="610" y="272" class="label sub"   text-anchor="middle">Template Method · Jinja2 StrictUndefined</text>
+
+  <!-- Six small generator chips -->
+  <g class="label mono" fill="#FFFFFF">
+    <rect x="465" y="288" width="92" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="511" y="305" text-anchor="middle">openapi</text>
+
+    <rect x="565" y="288" width="92" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="611" y="305" text-anchor="middle">crd</text>
+
+    <rect x="665" y="288" width="92" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="711" y="305" text-anchor="middle">instance</text>
+
+    <rect x="465" y="320" width="92" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="511" y="337" text-anchor="middle">go_controller</text>
+
+    <rect x="565" y="320" width="92" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="611" y="337" text-anchor="middle">mcp_server</text>
+
+    <rect x="665" y="320" width="92" height="26" rx="6" fill="#FFFFFF" fill-opacity="0.18"/>
+    <text x="711" y="337" text-anchor="middle">kustomization</text>
+  </g>
+  <text x="610" y="368" class="label sub" text-anchor="middle">→ SHA-256 every file → ProvenanceManifest</text>
+
+  <!-- Arrow Generators ← Artifacts (right→left) -->
+  <line x1="445" y1="310" x2="395" y2="310" stroke="#1F2937" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="420" y="302" class="flowLabel" text-anchor="middle">bundle</text>
+
+  <!-- Artifacts box (left of generators) -->
+  <g filter="url(#boxShadow)">
+    <rect x="200" y="230" width="195" height="160" rx="12" fill="url(#k8sGrad)"/>
+  </g>
+  <text x="297" y="256" class="label title" text-anchor="middle">Artifact Bundle</text>
+  <text x="297" y="275" class="label sub"   text-anchor="middle">on disk &amp; signed</text>
+
+  <g class="label mono" fill="#FFFFFF">
+    <text x="297" y="298" text-anchor="middle">openapi.json</text>
+    <text x="297" y="313" text-anchor="middle">&lt;kind&gt;.crd.yaml</text>
+    <text x="297" y="328" text-anchor="middle">&lt;kind&gt;.instance.yaml</text>
+    <text x="297" y="343" text-anchor="middle">controller/…</text>
+    <text x="297" y="358" text-anchor="middle">mcp/…</text>
+    <text x="297" y="373" text-anchor="middle">kustomization.yaml</text>
+    <text x="297" y="388" text-anchor="middle">manifest.json</text>
+  </g>
+
+  <!-- Arrow Bundle ← (optional) Cluster apply -->
+  <line x1="195" y1="310" x2="155" y2="310" stroke="#6B7280" stroke-width="2"
+        stroke-dasharray="5 4" marker-end="url(#arrowSubtle)"/>
+
+  <!-- Cluster (optional) -->
+  <g filter="url(#boxShadow)">
+    <rect x="30" y="270" width="120" height="80" rx="10" fill="#9CA3AF"/>
+  </g>
+  <text x="90" y="296" class="label title" text-anchor="middle">Kind Cluster</text>
+  <text x="90" y="318" class="label sub"   text-anchor="middle">kubectl apply -k</text>
+  <text x="90" y="336" class="label sub"   text-anchor="middle">(optional)</text>
+
+  <!-- =========================================================== -->
+  <!-- Bottom band: Observability                                   -->
+  <!-- =========================================================== -->
+
+  <g filter="url(#boxShadow)">
+    <rect x="30" y="420" width="840" height="60" rx="10" fill="url(#obsGrad)"/>
+  </g>
+  <text x="50" y="446" class="label title">Observability</text>
+  <text x="50" y="468" class="label sub">35 domain events · structlog (TTY/JSON) · OTEL traces · metric catalogue · SHA-256 provenance</text>
+  <g class="label mono" fill="#FFFFFF" fill-opacity="0.85">
+    <text x="540" y="446">RunStarted ▸ IntentSubmitted ▸ LlmInvocationSucceeded ▸ CodegenRequestParsed</text>
+    <text x="540" y="468">▸ IRConstructed ▸ ArtifactGenerated ▸ ArtifactBundleSealed ▸ RunSucceeded</text>
+  </g>
+
+  <!-- Subtle dotted lines from each top box to the observability strip -->
+  <g stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 4" opacity="0.5">
+    <line x1="90"  y1="180" x2="90"  y2="420"/>
+    <line x1="270" y1="180" x2="270" y2="420"/>
+    <line x1="470" y1="180" x2="470" y2="420"/>
+    <line x1="685" y1="180" x2="685" y2="230"/>
+    <line x1="610" y1="390" x2="610" y2="420"/>
+    <line x1="297" y1="390" x2="297" y2="420"/>
+  </g>
+</svg>

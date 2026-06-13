@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+(no entries yet)
+
+## [1.0.0] - 2026-06-13
+
 First public release: documentation-driven implementation from scratch — Waves 1–8.
 
 ### Added
@@ -76,4 +80,5 @@ First public release: documentation-driven implementation from scratch — Waves
 - pytest-benchmark suite landed under `tests/performance/` covering IR builder, CRD generator, artifact bundle, and full-saga hot paths with explicit per-test budgets (ADR-0018).
 <!-- Wave 8 chunk (4) appends here -->
 
-[Unreleased]: https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/compare/HEAD...HEAD
+[Unreleased]: https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/releases/tag/v1.0.0
