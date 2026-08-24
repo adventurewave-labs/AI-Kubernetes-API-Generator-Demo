@@ -10,6 +10,7 @@ import os
 import subprocess
 import shutil
 from pathlib import Path
+import yaml
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 import json
@@ -524,3 +525,82 @@ require (
             "object": "map[string]interface{}"
         }
         return type_map.get(json_type, "string")
+
+def generate_crd_yaml(request) -> tuple:
+    """Generate Kubernetes CRD + instance YAML from a CodegenRequest.
+    
+    Returns: (crd_yaml, instance_yaml, combined_yaml)
+    """
+    crd_dict = {
+        "apiVersion": "apiextensions.k8s.io/v1",
+        "kind": "CustomResourceDefinition",
+        "metadata": {
+            "name": f"{request.kind.lower()}s.{request.group}",
+        },
+        "spec": {
+            "group": request.group,
+            "versions": [{
+                "name": request.version,
+                "served": True,
+                "storage": True,
+                "schema": {
+                    "openAPIV3Schema": {
+                        "type": "object",
+                        "properties": {
+                            "apiVersion": {"type": "string"},
+                            "kind": {"type": "string"},
+                            "metadata": {"type": "object"},
+                            "spec": {"type": "object", "properties": {}},
+                        }
+                    }
+                }
+            }],
+            "names": {
+                "kind": request.kind,
+                "plural": f"{request.kind.lower()}s",
+                "singular": request.kind.lower()
+            },
+            "scope": "Namespaced"
+        }
+    }
+
+    # Add spec properties
+    for field_name, field_info in request.spec_properties.items():
+        field_type = field_info.get("type", "string") if isinstance(field_info, dict) else field_info
+        field_desc = field_info.get("description", f"Description for {field_name}")
+        property_schema = {"type": field_type, "description": field_desc}
+        if field_type == "array":
+            property_schema["items"] = {"type": "string"}
+        elif field_type == "object":
+            property_schema["additionalProperties"] = {"type": "string"}
+        crd_dict["spec"]["versions"][0]["schema"]["openAPIV3Schema"]["properties"]["spec"]["properties"][field_name] = property_schema
+
+    # Generate sample instance
+    sample_spec = {}
+    for field_name, field_info in request.spec_properties.items():
+        field_type = field_info.get("type", "string") if isinstance(field_info, dict) else field_info
+        if field_type == "string":
+            sample_spec[field_name] = "example-value"
+        elif field_type == "integer":
+            sample_spec[field_name] = 3
+        elif field_type == "boolean":
+            sample_spec[field_name] = True
+        elif field_type == "array":
+            sample_spec[field_name] = ["item1", "item2"]
+        elif field_type == "object":
+            sample_spec[field_name] = {"key": "value"}
+        else:
+            sample_spec[field_name] = "example-value"
+
+    instance_dict = {
+        "apiVersion": f"{request.group}/{request.version}",
+        "kind": request.kind,
+        "metadata": {"name": f"my-{request.kind.lower()}-instance", "namespace": "default"},
+        "spec": sample_spec
+    }
+
+    crd_yaml = yaml.dump(crd_dict, default_flow_style=False, sort_keys=False)
+    instance_yaml = yaml.dump(instance_dict, default_flow_style=False, sort_keys=False)
+    combined_yaml = crd_yaml + "---
+" + instance_yaml
+    return crd_yaml, instance_yaml, combined_yaml
