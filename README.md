@@ -29,7 +29,7 @@ Generate Kubernetes APIs from plain English descriptions. This tool helps develo
 
 ```bash
 # Clone the repository
-git clone https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo.git
+git clone https://github.com/adventurewave-labs/AI-Kubernetes-API-Generator-Demo.git
 cd AI-Kubernetes-API-Generator-Demo
 
 # Get your free OpenRouter API key from https://openrouter.ai
