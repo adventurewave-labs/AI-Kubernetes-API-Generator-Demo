@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="AI-Kubernetes-API-Generator-Demo: Natural language to Kubernetes CRD + OpenAPI 3.0 spec via">
+<title>AI-Kubernetes-API-Generator-Demo</title>
+<defs>
+<radialGradient id="aur1"><stop offset="0" stop-color="#ec4899" stop-opacity="0.50"/><stop offset="1" stop-color="#ec4899" stop-opacity="0"/></radialGradient>
+<radialGradient id="aur2"><stop offset="0" stop-color="#f97316" stop-opacity="0.45"/><stop offset="1" stop-color="#f97316" stop-opacity="0"/></radialGradient>
+<radialGradient id="orb"><stop offset="0" stop-color="#f472b6" stop-opacity="0.9"/><stop offset="0.55" stop-color="#f472b6" stop-opacity="0.25"/><stop offset="1" stop-color="#f472b6" stop-opacity="0"/></radialGradient>
+<linearGradient id="tgrad" x1="0" x2="1"><stop offset="0" stop-color="#c9a227"/><stop offset="0.6" stop-color="#ffffff"/><stop offset="1" stop-color="#c9a227"/></linearGradient>
+<linearGradient id="beam" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.45"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+<linearGradient id="hglow" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#c9a227" stop-opacity="0.30"/><stop offset="1" stop-color="#c9a227" stop-opacity="0"/></linearGradient>
+<filter id="soft" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="30"/></filter>
+<filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="glow2" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="10"/></filter>
+</defs>
+<rect width="1200" height="400" fill="#04060c"/>
+<ellipse cx="250" cy="120" rx="360" ry="190" fill="url(#aur1)" filter="url(#soft)">
+<animateTransform attributeName="transform" type="translate" values="0 0; 70 24; -40 12; 0 0" dur="26s" repeatCount="indefinite"/>
+</ellipse>
+<ellipse cx="960" cy="150" rx="400" ry="210" fill="url(#aur2)" filter="url(#soft)">
+<animateTransform attributeName="transform" type="translate" values="0 0; -60 18; 34 -12; 0 0" dur="32s" repeatCount="indefinite"/>
+</ellipse>
+<g><circle cx="935" cy="206" r="2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.56s" begin="-1.62s" repeatCount="indefinite"/></circle>
+<circle cx="556" cy="185" r="1.2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.18s" begin="-2.10s" repeatCount="indefinite"/></circle>
+<circle cx="936" cy="184" r="1.2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="4.03s" begin="-2.87s" repeatCount="indefinite"/></circle>
+<circle cx="756" cy="54" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="4.05s" begin="-1.82s" repeatCount="indefinite"/></circle>
+<circle cx="741" cy="78" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.49s" begin="-0.17s" repeatCount="indefinite"/></circle>
+<circle cx="1057" cy="171" r="2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.06s" begin="-3.23s" repeatCount="indefinite"/></circle>
+<circle cx="938" cy="134" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.98s" begin="-2.38s" repeatCount="indefinite"/></circle>
+<circle cx="488" cy="161" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="4.33s" begin="-2.21s" repeatCount="indefinite"/></circle>
+<circle cx="956" cy="98" r="1.6" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="4.25s" begin="-2.70s" repeatCount="indefinite"/></circle>
+<circle cx="658" cy="130" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="2.36s" begin="-1.75s" repeatCount="indefinite"/></circle>
+<circle cx="700" cy="84" r="1.6" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.01s" begin="-0.29s" repeatCount="indefinite"/></circle>
+<circle cx="912" cy="98" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="2.48s" begin="-2.10s" repeatCount="indefinite"/></circle>
+<circle cx="267" cy="36" r="1.6" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.83s" begin="-2.32s" repeatCount="indefinite"/></circle>
+<circle cx="148" cy="186" r="1.6" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.34s" begin="-2.40s" repeatCount="indefinite"/></circle>
+<circle cx="503" cy="209" r="1.6" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.91s" begin="-3.09s" repeatCount="indefinite"/></circle>
+<circle cx="881" cy="110" r="1.2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="4.12s" begin="-0.93s" repeatCount="indefinite"/></circle>
+<circle cx="497" cy="89" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.47s" begin="-3.21s" repeatCount="indefinite"/></circle>
+<circle cx="153" cy="172" r="2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="4.47s" begin="-3.70s" repeatCount="indefinite"/></circle>
+<circle cx="256" cy="150" r="1.2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.93s" begin="-4.58s" repeatCount="indefinite"/></circle>
+<circle cx="563" cy="118" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="2.59s" begin="-0.50s" repeatCount="indefinite"/></circle>
+<circle cx="495" cy="152" r="2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="2.51s" begin="-1.89s" repeatCount="indefinite"/></circle>
+<circle cx="609" cy="92" r="2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="2.97s" begin="-2.62s" repeatCount="indefinite"/></circle>
+<circle cx="499" cy="91" r="1.6" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="4.09s" begin="-0.91s" repeatCount="indefinite"/></circle>
+<circle cx="546" cy="148" r="1.6" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="2.85s" begin="-0.45s" repeatCount="indefinite"/></circle>
+<circle cx="1040" cy="41" r="1.2" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="2.24s" begin="-0.26s" repeatCount="indefinite"/></circle>
+<circle cx="798" cy="166" r="1" fill="#dbe7ff"><animate attributeName="opacity" values="0.08;0.85;0.08" dur="3.25s" begin="-2.25s" repeatCount="indefinite"/></circle></g>
+<rect x="0" y="236" width="1200" height="130" fill="url(#hglow)">
+<animate attributeName="opacity" values="0.45;0.9;0.45" dur="7s" repeatCount="indefinite"/>
+</rect>
+<circle cx="600" cy="242" r="90" fill="url(#orb)">
+<animate attributeName="r" values="78;110;78" dur="6s" repeatCount="indefinite"/>
+</circle>
+<path d="M600 240 L-150 400 M600 240 L0 400 M600 240 L150 400 M600 240 L300 400 M600 240 L450 400 M600 240 L600 400 M600 240 L750 400 M600 240 L900 400 M600 240 L1050 400 M600 240 L1200 400 M600 240 L1350 400" stroke="#9d174d" stroke-width="1.3" opacity="0.55" fill="none" stroke-dasharray="12 16">
+<animate attributeName="stroke-dashoffset" values="0;-56" dur="0.9s" repeatCount="indefinite"/>
+</path>
+<path d="M0 252 H1200 M0 268 H1200 M0 290 H1200 M0 318 H1200 M0 352 H1200 M0 392 H1200" stroke="#9d174d" stroke-width="1" opacity="0.35" fill="none"/>
+<circle cx="600" cy="241" r="4" fill="#c9a227" filter="url(#glow2)">
+<animate attributeName="opacity" values="0.6;1;0.6" dur="2.6s" repeatCount="indefinite"/>
+</circle>
+<rect x="-260" y="-90" width="170" height="580" fill="url(#beam)" opacity="0.10" filter="url(#soft)" transform="rotate(14)">
+<animateTransform attributeName="transform" type="translate" additive="sum" values="-350 0;1750 0" dur="7s" repeatCount="indefinite"/>
+</rect>
+<rect x="-260" y="-90" width="170" height="580" fill="url(#beam)" opacity="0.07" filter="url(#soft)" transform="rotate(14)">
+<animateTransform attributeName="transform" type="translate" additive="sum" values="-350 0;1750 0" dur="7s" begin="-3.4s" repeatCount="indefinite"/>
+</rect>
+<text x="600" y="66" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" letter-spacing="6" fill="#c9a227" opacity="0.85">ADVENTUREWAVE-LABS · AI-KUBERNETES-API-GENERATOR-DEMO</text>
+<text x="600" y="152" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="58" font-weight="800" letter-spacing="1" fill="#c9a227" opacity="0.55" filter="url(#glow2)">AI-Kubernetes-API-Generator-Demo</text>
+<text x="600" y="152" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="58" font-weight="800" letter-spacing="1" fill="url(#tgrad)">AI-Kubernetes-API-Generator-Demo</text>
+<text x="600" y="198" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="19" letter-spacing="0.4" fill="#a8b3c4">Natural language to Kubernetes CRD + OpenAPI 3.0 spec via</text>
+<text x="600" y="224" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="19" letter-spacing="0.4" fill="#a8b3c4">OpenRouter LLM, applied to a kind cluster.</text>
+
+<g transform="translate(600,308)">
+
+<g transform="translate(-320,-10)">
+<path d="M-96 -34 h168 a10 10 0 0 1 10 10 v34 a10 10 0 0 1 -10 10 h-128 l-24 18 v-18 h-16 a10 10 0 0 1 -10 -10 v-34 a10 10 0 0 1 10 -10 z" fill="#16130c" stroke="#c9a227" stroke-width="2"/>
+<text x="-14" y="-2" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" fill="#d4c9a8" text-anchor="middle">"a cron job"</text>
+</g>
+<line x1="-180" y1="0" x2="-80" y2="0" stroke="#c9a227" stroke-width="2" stroke-dasharray="6 6"><animate attributeName="stroke-dashoffset" values="0;-24" dur="0.8s" repeatCount="indefinite"/></line>
+<g transform="translate(-20,0)" fill="#e3b341" filter="url(#glow)">
+<path d="M0 -20 L5 -6 L19 0 L5 6 L0 20 L-5 6 L-19 0 L-5 -6 Z"><animateTransform attributeName="transform" type="rotate" values="0;360" dur="9s" repeatCount="indefinite"/></path>
+</g>
+<line x1="40" y1="0" x2="130" y2="0" stroke="#c9a227" stroke-width="2" stroke-dasharray="6 6"><animate attributeName="stroke-dashoffset" values="0;-24" dur="0.8s" begin="-0.4s" repeatCount="indefinite"/></line>
+<g>
+<rect x="130" y="-52" width="180" height="104" rx="8" fill="#16130c" stroke="#8a7a5c" stroke-width="2"/>
+<text x="220" y="-30" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" fill="#d4c9a8" text-anchor="middle">crd.yaml</text>
+<g stroke="#57503f" stroke-width="4" stroke-linecap="round">
+<line x1="150" y1="-12" x2="290" y2="-12"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.4s" repeatCount="indefinite"/></line>
+<line x1="150" y1="6" x2="270" y2="6"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.4s" begin="-0.8s" repeatCount="indefinite"/></line>
+<line x1="150" y1="24" x2="250" y2="24"><animate attributeName="opacity" values="0.2;1;0.2" dur="2.4s" begin="-1.6s" repeatCount="indefinite"/></line>
+</g>
+</g>
+<g transform="translate(420,0)">
+<path d="M28 0 L14 24 L-14 24 L-28 0 L-14 -24 L14 -24 Z" fill="#16130c" stroke="#d4c9a8" stroke-width="2.5" filter="url(#glow)">
+<animate attributeName="stroke-width" values="2.5;4;2.5" dur="2.4s" repeatCount="indefinite"/>
+</path>
+<text y="5" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" fill="#d4c9a8" text-anchor="middle">kind</text>
+</g>
+
+</g>
+</svg>
