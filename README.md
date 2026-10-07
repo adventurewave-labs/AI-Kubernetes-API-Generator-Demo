@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/banner.svg" alt="AI-Kubernetes-API-Generator-Demo — animated banner" width="100%"></p>
+
 # AI Kubernetes API Generator
 
 Transform natural language descriptions into Kubernetes Custom Resource Definitions (CRDs) and OpenAPI specifications.
