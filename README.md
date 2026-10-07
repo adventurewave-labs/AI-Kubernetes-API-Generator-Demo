@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/banner.svg" alt="AI-Kubernetes-API-Generator-Demo — animated banner" width="100%"></p>
+<p align="center"><img src="docs/banner.svg" alt="AI-Kubernetes-API-Generator-Demo — animated banner" width="100%"></p>
 
 # AI Kubernetes API Generator
 
