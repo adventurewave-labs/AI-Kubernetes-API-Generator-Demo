@@ -146,7 +146,7 @@ def save_spec_to_file(spec, filename):
     filepath = output_dir / f"{filename}.json"
 
     with open(filepath, 'w') as f:
-        json.dump(spec.dict(), f, indent=2)
+        json.dump(spec.model_dump(), f, indent=2)
 
     print(f"💾 Saved spec to: {filepath}")
     return filepath

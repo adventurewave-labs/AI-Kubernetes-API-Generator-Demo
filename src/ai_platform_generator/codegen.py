@@ -40,7 +40,7 @@ class CodeGenerator:
             # Allow initialization without MCP codegen tool for K8s controller generation
             self.openapi_codegen_path = None
 
-    def _find_codegen_tool(self) -> str:
+    def _find_codegen_tool(self, search_root: Optional[Path] = None) -> str:
         """Find the openapi-mcp-codegen tool."""
         # First check if it's available in PATH
         path = shutil.which("openapi_mcp_codegen")
@@ -48,7 +48,8 @@ class CodeGenerator:
             return path
 
         # Check the cloned repository
-        repo_path = Path(__file__).parent.parent.parent.parent / "openapi-mcp-codegen"
+        base = search_root if search_root is not None else Path(__file__).parent.parent.parent.parent
+        repo_path = base / "openapi-mcp-codegen"
         if repo_path.exists():
             if (repo_path / "openapi_mcp_codegen" / "__main__.py").exists():
                 return str(repo_path / "openapi_mcp_codegen" / "__main__.py")
@@ -601,6 +602,5 @@ def generate_crd_yaml(request) -> tuple:
 
     crd_yaml = yaml.dump(crd_dict, default_flow_style=False, sort_keys=False)
     instance_yaml = yaml.dump(instance_dict, default_flow_style=False, sort_keys=False)
-    combined_yaml = crd_yaml + "---
-" + instance_yaml
+    combined_yaml = crd_yaml + "---\n" + instance_yaml
     return crd_yaml, instance_yaml, combined_yaml

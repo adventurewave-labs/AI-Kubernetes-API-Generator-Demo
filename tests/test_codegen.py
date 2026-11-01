@@ -4,6 +4,7 @@ Tests for the Code Generation module
 
 import pytest
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch, call
@@ -30,8 +31,9 @@ class TestCodeGenerator:
         )
 
     def test_initialization(self):
-        """Test generator initialization"""
-        assert self.generator.openapi_codegen_path is not None
+        """Generator initializes without the MCP tool (graceful degradation to K8s-only mode)."""
+        assert self.generator.openapi_codegen_path is None or \
+            Path(self.generator.openapi_codegen_path).exists()
 
     @patch('shutil.which')
     def test_find_codegen_tool_in_path(self, mock_which):
@@ -42,30 +44,27 @@ class TestCodeGenerator:
         assert generator.openapi_codegen_path == "/usr/bin/openapi_mcp_codegen"
 
     @patch('shutil.which')
-    @patch('src.ai_platform_generator.codegen.Path')
-    def test_find_codegen_tool_in_repo(self, mock_path, mock_which):
-        """Test finding codegen tool in repository"""
+    def test_find_codegen_tool_in_repo(self, mock_which, tmp_path):
+        """Test finding codegen tool in a cloned sibling repository"""
         mock_which.return_value = None
 
-        mock_repo_path = Mock()
-        mock_main_py = Mock()
-        mock_main_py.exists.return_value = True
-        mock_repo_path.__truediv__.return_value.__truediv__.return_value.__truediv__ = mock_main_py
-
-        mock_path.return_value.__truediv__.return_value = mock_repo_path
+        main_py = tmp_path / "openapi-mcp-codegen" / "openapi_mcp_codegen" / "__main__.py"
+        main_py.parent.mkdir(parents=True)
+        main_py.touch()
 
         generator = CodeGenerator()
-        assert generator.openapi_codegen_path.endswith("__main__.py")
+        assert generator._find_codegen_tool(search_root=tmp_path).endswith("__main__.py")
 
     @patch('shutil.which')
-    @patch('src.ai_platform_generator.codegen.Path')
-    def test_find_codegen_tool_not_found(self, mock_path, mock_which):
-        """Test codegen tool not found"""
+    def test_find_codegen_tool_not_found(self, mock_which, tmp_path):
+        """Without the tool anywhere, _find_codegen_tool raises and __init__ degrades to None"""
         mock_which.return_value = None
-        mock_path.return_value.__truediv__.return_value.exists.return_value = False
 
         with pytest.raises(FileNotFoundError, match="openapi-mcp-codegen tool not found"):
-            CodeGenerator()
+            CodeGenerator()._find_codegen_tool(search_root=tmp_path)
+
+        generator = CodeGenerator()
+        assert generator.openapi_codegen_path is None
 
     def test_generate_openapi_spec(self):
         """Test OpenAPI specification generation"""
@@ -104,49 +103,39 @@ class TestCodeGenerator:
         assert schema["properties"]["enabled"]["type"] == "boolean"
 
     @patch('subprocess.run')
-    @patch('builtins.open')
-    @patch('json.dump')
-    def test_generate_mcp_server_success(self, mock_json_dump, mock_open, mock_subprocess):
+    def test_generate_mcp_server_success(self, mock_subprocess, tmp_path):
         """Test successful MCP server generation"""
-        # Mock subprocess success
         mock_subprocess.return_value.stdout = "Generation successful"
         mock_subprocess.return_value.stderr = ""
-        mock_subprocess.return_value.check = True
 
-        # Mock file operations
-        mock_file = Mock()
-        mock_open.return_value.__enter__.return_value = mock_file
+        # A file the generator should discover in the output directory
+        (tmp_path / "server.py").touch()
+        request = self.sample_request
+        request.output_dir = str(tmp_path)
 
-        # Mock path operations
-        with patch('src.ai_platform_generator.codegen.Path') as mock_path:
-            mock_output_path = Mock()
-            mock_output_path.exists.return_value = True
-            mock_output_path.rglob.return_value = [Mock(is_file=lambda: True)]
-            mock_path.return_value = mock_output_path
-
-            result = self.generator.generate_mcp_server(self.sample_request)
+        # Inject a tool path so the graceful-degradation early-return is bypassed
+        generator = CodeGenerator(openapi_codegen_path="/fake/openapi_mcp_codegen")
+        result = generator.generate_mcp_server(request)
 
         assert result.success is True
         assert result.stdout == "Generation successful"
         assert len(result.generated_files) > 0
 
     @patch('subprocess.run')
-    @patch('builtins.open')
-    @patch('json.dump')
-    def test_generate_mcp_server_failure(self, mock_json_dump, mock_open, mock_subprocess):
+    def test_generate_mcp_server_failure(self, mock_subprocess, tmp_path):
         """Test MCP server generation failure"""
-        # Mock subprocess failure
-        mock_subprocess.side_effect = subprocess.CalledProcessError(1, 'cmd')
+        mock_subprocess.side_effect = subprocess.CalledProcessError(
+            1, 'cmd', stderr="simulated tool failure")
 
-        # Mock file operations
-        mock_file = Mock()
-        mock_open.return_value.__enter__.return_value = mock_file
+        request = self.sample_request
+        request.output_dir = str(tmp_path)
 
-        with patch('src.ai_platform_generator.codegen.Path'):
-            result = self.generator.generate_mcp_server(self.sample_request)
+        # Inject a tool path so the graceful-degradation early-return is bypassed
+        generator = CodeGenerator(openapi_codegen_path="/fake/openapi_mcp_codegen")
+        result = generator.generate_mcp_server(request)
 
         assert result.success is False
-        assert "CalledProcessError" in result.stderr
+        assert "simulated tool failure" in result.stderr
 
     def test_generate_kubernetes_controller_success(self):
         """Test successful Kubernetes controller generation"""

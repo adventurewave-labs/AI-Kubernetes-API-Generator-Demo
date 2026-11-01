@@ -19,14 +19,12 @@ def test_openrouter_models():
     print("🧪 Testing OpenRouter Models")
     print("=" * 50)
 
-    # List of free models to test
+    # List of free models to test (verified live on OpenRouter 2026-11-01)
     models_to_test = [
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "microsoft/phi-3-medium-128k-free",
-        "meta-llama/llama-3.2-3b-instruct:free",
-        "google/gemma-2-9b-it:free",
-        "anthropic/claude-3-haiku",
-        "anthropic/claude-3.5-sonnet:free"
+        "liquid/lfm-2.5-2.6b:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "xingchen-agi/xing4.0-29b-a4b:free",
+        "recursive/flint-v1.0:free"
     ]
 
     working_models = []
