@@ -28,7 +28,7 @@ class CodegenRequest:
 class PlatformExtensionAgent:
     """AI Agent for generating Kubernetes platform extensions."""
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "anthropic/claude-3.5-sonnet", verify_ssl: bool = True):
+    def __init__(self, api_key: Optional[str] = None, model: str = "liquid/lfm-2.5-2.6b:free", verify_ssl: bool = True):
         """Initialize the agent with OpenRouter configuration."""
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.model = model

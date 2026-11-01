@@ -15,6 +15,7 @@ uvicorn>=0.20.0
 
 # Terminal Formatting and UI
 rich>=13.0.0
+click>=8.0.0
 
 # YAML Processing
 PyYAML>=6.0.0

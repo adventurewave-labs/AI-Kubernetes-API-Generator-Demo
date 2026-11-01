@@ -254,6 +254,7 @@ class TestCLI:
             # Check that the output directory was overridden
             assert mock_agent_instance.enhance_request.called
 
+    @patch('src.ai_platform_generator.cli.Prompt')
     @patch('src.ai_platform_generator.cli.PlatformExtensionAgent')
     def test_interactive_command_keyboard_interrupt(self, mock_agent, mock_prompt):
         """Test interactive command handles keyboard interrupt"""
@@ -272,8 +273,9 @@ class TestCLI:
         mock_agent_instance.validate_request.return_value = []
         mock_agent_instance.enhance_request.return_value = mock_request
 
-        # Mock keyboard interrupt on first prompt
-        mock_prompt.side_effect = KeyboardInterrupt()
+        # Mock keyboard interrupt on first prompt, then exit on the second
+        # (the interactive loop catches the interrupt and prompts again)
+        mock_prompt.ask.side_effect = [KeyboardInterrupt(), "exit"]
 
         with patch.dict('os.environ', {'OPENROUTER_API_KEY': self.api_key}):
             result = self.runner.invoke(main, ['interactive'])

@@ -7,7 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-11-01
+
+Refresh after unarchiving: realign the tree's claims with the tree.
+
+### Fixed
+
+- `ai_platform_generator` was unimportable since 2026-08-24 — a commit appending `generate_crd_yaml()` introduced a syntax error (raw newline inside a string literal) in `codegen.py`. No CI and a non-collecting test suite hid it for over two months.
+- Test suite green again: `pytest tests/` now collects and passes 44 tests (`test_agent.py`, `test_codegen.py`, `test_cli.py`).
+- `test_cli.py::test_interactive_command_keyboard_interrupt` had lost one of its two `@patch` decorators (parameter/fixture mismatch) and a `side_effect` aimed at the wrong mock level, making the interactive loop spin forever; restored.
+- Five stale `CodeGenerator` tests contradicted the code's graceful-degradation contract (init without the `openapi-mcp-codegen` tool is supported): rewritten against the real contract, with real `tmp_path` filesystems instead of Mock chains that could not pass as written.
+- Default model replaced everywhere: `meta-llama/llama-3.2-3b-instruct:free` was withdrawn from OpenRouter (run.sh, README, .env.example, `examples/test_models.py`). New default `liquid/lfm-2.5-2.6b:free` — free tier, supports structured outputs. The paid `anthropic/claude-3.5-sonnet` defaults in `agent.py`/`cli.py` and the phantom "deepseek/free" in run.sh help text were aligned to the same model.
+- CHANGELOG compare links pointed at the pre-transfer `marcuspat/` location.
+
+### Added
+
+- `tests/conftest.py` — excludes the six test files that import the unmerged hexagonal architecture (see the 1.1.0 correction below) and puts the repo root on `sys.path` so bare `pytest tests/` works.
+- `click` to requirements.txt (`cli.py` imports it; it was missing).
+- README: "What is and isn't real" section, repo history section, and a Related section crosslinking the AdventureWave Labs Kubernetes demo lane (agentic-devops-extravaganza, noip-scanner, moor-demo).
+
+### Removed
+
+- Two committed `.pyc` artifacts under `src/ai_platform_generator/__pycache__/` (untracked; `__pycache__/` was already in .gitignore).
+
 ## [1.1.0] — 2026-06-12
+
+> **Correction (2026-11-01).** This entry describes the 74-commit hexagonal/DDD
+> rewrite completed on the `claude/adr-ddd-documentation-wcROb` branch. Only the
+> documentation (docs/adr/, docs/ddd/) and this changelog landed on main — the
+> code, the release pipeline, the Makefile/pyproject packaging, and the reports
+> referenced below were never merged and are not in this tree. Main carries the
+> simpler generator that v1.0.x had. The entry is kept as the branch's record.
 
 Full DDD + hexagonal-architecture rewrite (Waves 1–8). First release after v1.0.1 prototype tags.
 
@@ -88,5 +118,6 @@ Full DDD + hexagonal-architecture rewrite (Waves 1–8). First release after v1.
 
 ---
 
-[Unreleased]: https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/marcuspat/AI-Kubernetes-API-Generator-Demo/compare/v1.0.1...v1.1.0
+[Unreleased]: https://github.com/adventurewave-labs/AI-Kubernetes-API-Generator-Demo/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/adventurewave-labs/AI-Kubernetes-API-Generator-Demo/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/adventurewave-labs/AI-Kubernetes-API-Generator-Demo/compare/v1.0.1...v1.1.0

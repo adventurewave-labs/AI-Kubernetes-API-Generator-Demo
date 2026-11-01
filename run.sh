@@ -40,7 +40,7 @@ export AZURE_OPENAI_ENDPOINT="${AZURE_OPENAI_ENDPOINT:-}"
 
 # OpenRouter API Configuration (ALTERNATIVE TO OPENAI)
 export OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}"
-export OPENROUTER_MODEL="${OPENROUTER_MODEL:-meta-llama/llama-3.2-3b-instruct:free}"
+export OPENROUTER_MODEL="${OPENROUTER_MODEL:-liquid/lfm-2.5-2.6b:free}"
 
 # Project Environment Variables
 export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH}"
@@ -84,7 +84,7 @@ validate_api_key() {
         return 0
     elif [[ -n "$OPENROUTER_API_KEY" ]]; then
         echo -e "${GREEN}✅ OpenRouter API key is set${NC}"
-        echo -e "${GREEN}   Using model: ${OPENROUTER_MODEL:-anthropic/claude-3.5-sonnet}${NC}"
+        echo -e "${GREEN}   Using model: ${OPENROUTER_MODEL:-liquid/lfm-2.5-2.6b:free}${NC}"
         return 0
     else
         echo -e "${YELLOW}⚠️  WARNING: No API key found${NC}"
@@ -589,7 +589,7 @@ ${YELLOW}Demo Command:${NC}
 
 ${YELLOW}Environment Variables:${NC}
     OPENROUTER_API_KEY      Your OpenRouter API key (REQUIRED for AI)
-    OPENROUTER_MODEL        OpenRouter model to use (default: deepseek/free)
+    OPENROUTER_MODEL        OpenRouter model to use (default: liquid/lfm-2.5-2.6b:free)
     OPENAI_API_KEY          Alternative OpenAI API key
     AI_AGENT_DEBUG          Enable debug mode (default: false)
 
