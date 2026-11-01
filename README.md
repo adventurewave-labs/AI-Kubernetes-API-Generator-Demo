@@ -14,7 +14,7 @@ A demo that oversells itself is worth less than one that tells you exactly where
 
 **Real:**
 
-- **The AI generation path.** `examples/ai_demo.py` sends your description to an OpenRouter model (your key, your choice of model), parses the response into a pydantic-validated `CodegenRequest`, and emits an OpenAPI 3.0 spec plus CRD and sample-instance YAML.
+- **The AI generation path.** `examples/ai_demo.py` sends your description to an OpenRouter model (your key, your choice of model), parses the response into a `CodegenRequest`, and emits an OpenAPI 3.0 spec plus CRD and sample-instance YAML. (The offline path's `APIRequest`/`OpenAPISpec` models are pydantic-validated; `CodegenRequest` is a dataclass.)
 - **The offline fallback path.** `examples/demo.py` runs the same generation pipeline with canned descriptions — no API key, no cluster needed. If you want to see the artifact shapes in 10 seconds, start here.
 - **The library is importable and tested.** `src/ai_platform_generator` imports cleanly and `python3 -m pytest tests/ -v` runs 44 tests, all passing (verified on Python 3.14).
 - **The CLI exists** (`ai_platform_generator/cli.py`: `interactive`, `generate`, `examples` commands via Click + Rich).

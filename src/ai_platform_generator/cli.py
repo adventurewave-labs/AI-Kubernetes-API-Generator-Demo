@@ -35,7 +35,7 @@ def main():
 
 @main.command()
 @click.option('--api-key', envvar='OPENROUTER_API_KEY', help='OpenRouter API key')
-@click.option('--model', default='liquid/lfm-2.5-2.6b:free', help='AI model to use')
+@click.option('--model', default='liquid/lfm-2.5-2.6b:free', envvar='OPENROUTER_MODEL', help='AI model to use')
 @click.option('--output-dir', default='./generated', help='Output directory for generated code')
 def interactive(api_key: Optional[str], model: str, output_dir: str):
     """Start interactive mode for generating platform extensions."""
@@ -141,7 +141,7 @@ def interactive(api_key: Optional[str], model: str, output_dir: str):
 @main.command()
 @click.argument('description')
 @click.option('--api-key', envvar='OPENROUTER_API_KEY', help='OpenRouter API key')
-@click.option('--model', default='liquid/lfm-2.5-2.6b:free', help='AI model to use')
+@click.option('--model', default='liquid/lfm-2.5-2.6b:free', envvar='OPENROUTER_MODEL', help='AI model to use')
 @click.option('--output-dir', help='Output directory for generated code')
 @click.option('--format', 'output_format', type=click.Choice(['json', 'yaml']), default='json', help='Output format')
 def generate(description: str, api_key: Optional[str], model: str, output_dir: Optional[str], output_format: str):
